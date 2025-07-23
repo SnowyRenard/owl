@@ -229,6 +229,61 @@ impl From<&f32> for Vec3 {
     }
 }
 
+impl From<[f32; 3]> for Vec3 {
+    #[inline]
+    fn from(value: [f32; 3]) -> Self {
+        Self {
+            x: value[0],
+            y: value[1],
+            z: value[2],
+        }
+    }
+}
+impl From<&[f32; 3]> for Vec3 {
+    #[inline]
+    fn from(value: &[f32; 3]) -> Self {
+        Self {
+            x: value[0],
+            y: value[1],
+            z: value[2],
+        }
+    }
+}
+
+impl From<(f32, f32, f32)> for Vec3 {
+    #[inline]
+    fn from(value: (f32, f32, f32)) -> Self {
+        Self {
+            x: value.0,
+            y: value.1,
+            z: value.2,
+        }
+    }
+}
+impl From<&(f32, f32, f32)> for Vec3 {
+    #[inline]
+    fn from(value: &(f32, f32, f32)) -> Self {
+        Self {
+            x: value.0,
+            y: value.1,
+            z: value.2,
+        }
+    }
+}
+
+impl From<Vec3> for [f32; 3] {
+    #[inline]
+    fn from(value: Vec3) -> Self {
+        [value.x, value.y, value.z]
+    }
+}
+impl From<&Vec3> for [f32; 3] {
+    #[inline]
+    fn from(value: &Vec3) -> Self {
+        [value.x, value.y, value.z]
+    }
+}
+
 // Vec3 x Vec3
 // -----------
 impl Add<Vec3> for Vec3 {
