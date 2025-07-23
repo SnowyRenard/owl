@@ -6,11 +6,6 @@ pub(crate) use std_math::*;
 #[cfg(feature = "std")]
 pub mod std_math {
     #[inline(always)]
-    pub(crate) fn abs(f: f32) -> f32 {
-        f32::abs(f)
-    }
-
-    #[inline(always)]
     pub(crate) fn sqrt(f: f32) -> f32 {
         f32::sqrt(f)
     }
@@ -44,11 +39,6 @@ pub mod std_math {
 #[cfg(not(feature = "std"))]
 pub mod core_math {
     use core::f32::math;
-
-    #[inline(always)]
-    pub(crate) fn abs(f: f32) -> f32 {
-        f32::abs(f)
-    }
 
     #[inline(always)]
     pub(crate) fn sqrt(f: f32) -> f32 {
