@@ -28,17 +28,20 @@ impl Vec2 {
     pub const NEG_X: Self = Self::new(-1., 0.);
     pub const NEG_Y: Self = Self::new(0., -1.);
 
-    #[inline]
+    #[inline(always)]
+    #[must_use]
     pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
 
     #[inline]
+    #[must_use]
     pub const fn splat(value: f32) -> Self {
         Self { x: value, y: value }
     }
 
     #[inline]
+    #[must_use]
     pub fn map<F: Fn(f32) -> f32>(self, f: F) -> Self {
         Self {
             x: f(self.x),
@@ -47,11 +50,13 @@ impl Vec2 {
     }
 
     #[inline]
+    #[must_use]
     pub fn dot(&self, rhs: Self) -> f32 {
-        self.x * rhs.x + self.y * rhs.y
+        (self.x * rhs.x) + (self.y * rhs.y)
     }
 
     #[inline]
+    #[must_use]
     pub fn min(self, rhs: Self) -> Self {
         Self {
             x: self.x.min(rhs.x),
@@ -59,6 +64,7 @@ impl Vec2 {
         }
     }
     #[inline]
+    #[must_use]
     pub fn max(self, rhs: Self) -> Self {
         Self {
             x: self.x.max(rhs.x),
@@ -67,6 +73,7 @@ impl Vec2 {
     }
 
     #[inline]
+    #[must_use]
     pub fn clamp(self, min: Self, max: Self) -> Self {
         Self {
             x: self.x.clamp(min.x, max.x),
@@ -75,24 +82,29 @@ impl Vec2 {
     }
 
     #[inline]
+    #[must_use]
     pub fn min_element(self) -> f32 {
         self.x.min(self.y)
     }
     #[inline]
+    #[must_use]
     pub fn max_element(self) -> f32 {
         self.x.max(self.y)
     }
 
     #[inline]
+    #[must_use]
     pub fn element_sum(self) -> f32 {
         self.x + self.y
     }
     #[inline]
+    #[must_use]
     pub fn element_product(self) -> f32 {
         self.x * self.y
     }
 
     #[inline]
+    #[must_use]
     pub fn abs(self) -> Self {
         Self {
             x: self.x.abs(),
@@ -101,20 +113,24 @@ impl Vec2 {
     }
 
     #[inline]
+    #[must_use]
     pub fn length(self) -> f32 {
         math::sqrt(self.length_squared())
     }
     #[inline]
+    #[must_use]
     pub fn length_squared(self) -> f32 {
         self.dot(self)
     }
 
     #[inline]
+    #[must_use]
     pub fn normalize(self) -> Self {
         self / self.length()
     }
 
     #[inline]
+    #[must_use]
     pub fn round(self) -> Self {
         Self {
             x: math::round(self.x),
@@ -122,6 +138,7 @@ impl Vec2 {
         }
     }
     #[inline]
+    #[must_use]
     pub fn floor(self) -> Self {
         Self {
             x: math::floor(self.x),
@@ -129,6 +146,7 @@ impl Vec2 {
         }
     }
     #[inline]
+    #[must_use]
     pub fn ceil(self) -> Self {
         Self {
             x: math::ceil(self.x),
@@ -136,6 +154,7 @@ impl Vec2 {
         }
     }
     #[inline]
+    #[must_use]
     pub fn trunc(self) -> Self {
         Self {
             x: math::trunc(self.x),
@@ -143,6 +162,7 @@ impl Vec2 {
         }
     }
     #[inline]
+    #[must_use]
     pub fn fract(self) -> Self {
         Self {
             x: math::fract(self.x),
@@ -151,10 +171,12 @@ impl Vec2 {
     }
 
     #[inline]
+    #[must_use]
     pub fn reflect(&self, normal: Self) -> Self {
         self - 2.0 * self.dot(normal) * normal
     }
     #[inline]
+    #[must_use]
     pub fn refract(&self, normal: Self, eta: f32) -> Self {
         let n_dot_i = normal.dot(*self);
         let k = 1. - eta * eta * (1. - n_dot_i * n_dot_i);
@@ -250,6 +272,36 @@ impl From<&Vec2> for [f32; 2] {
     #[inline]
     fn from(value: &Vec2) -> Self {
         [value.x, value.y]
+    }
+}
+
+impl Default for Vec2 {
+    #[inline]
+    fn default() -> Self {
+        Self::splat(0.)
+    }
+}
+
+impl Neg for Vec2 {
+    type Output = Vec2;
+
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Self::Output {
+            x: -self.x,
+            y: -self.y,
+        }
+    }
+}
+impl Neg for &Vec2 {
+    type Output = Vec2;
+
+    #[inline]
+    fn neg(self) -> Self::Output {
+        Self::Output {
+            x: -self.x,
+            y: -self.y,
+        }
     }
 }
 
