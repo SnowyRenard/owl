@@ -292,12 +292,12 @@ macro_rules! vec3s {
 
                 #[inline]
                 #[must_use]
-                pub fn dot(&self, other: Self) -> $type {
+                pub fn dot(self, other: Self) -> $type {
                     (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
                 }
                 #[inline]
                 #[must_use]
-                pub fn cross(&self, other: Self) -> Self {
+                pub fn cross(self, other: Self) -> Self {
                     Self {
                         x: self.y * other.z - other.y * self.z,
                         y: self.z * other.x - other.z * self.x,
@@ -307,7 +307,7 @@ macro_rules! vec3s {
 
                 #[inline]
                 #[must_use]
-                pub fn min(&self, other: Self) -> Self {
+                pub fn min(self, other: Self) -> Self {
                     Self {
                         x: if self.x < other.x { self.x } else { other.x },
                         y: if self.y < other.y { self.y } else { other.y },
@@ -316,7 +316,7 @@ macro_rules! vec3s {
                 }
                 #[inline]
                 #[must_use]
-                pub fn max(&self, other: Self) -> Self {
+                pub fn max(self, other: Self) -> Self {
                     Self {
                         x: if self.x > other.x { self.x } else { other.x },
                         y: if self.y > other.y { self.y } else { other.y },
@@ -429,13 +429,13 @@ macro_rules! vec3s {
 
                 #[inline]
                 #[must_use]
-                pub fn reflect(&self, normal: Self) -> Self {
+                pub fn reflect(self, normal: Self) -> Self {
                     self - 2.0 * self.dot(normal) * normal
                 }
                 #[inline]
                 #[must_use]
-                pub fn refract(&self, normal: Self, eta: $type) -> Self {
-                    let n_dot_i = normal.dot(*self);
+                pub fn refract(self, normal: Self, eta: $type) -> Self {
+                    let n_dot_i = normal.dot(self);
                     let k = 1. - eta * eta * (1. - n_dot_i * n_dot_i);
                     if k >= 0. {
                         eta * self - (eta * n_dot_i + Math::sqrt(k)) * normal
