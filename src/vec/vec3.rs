@@ -1,6 +1,6 @@
 use crate::math::Math;
 
-use std::ops::*;
+use core::ops::*;
 
 pub type Rgb = Vec3;
 pub type Uvw = Vec3;

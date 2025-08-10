@@ -1,6 +1,3 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(not(feature = "std"), feature(core_float_math))]
-
 /// A trait that provides an API for the math functions that don't have an implementation in std.
 pub(crate) trait Math {
     fn sqrt(self) -> Self;

@@ -1,6 +1,6 @@
 use crate::math::Math;
 
-use std::ops::*;
+use core::ops::*;
 
 pub type Rgba = Vec4;
 
