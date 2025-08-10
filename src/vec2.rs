@@ -17,7 +17,7 @@ macro_rules! impl_op {
             fn $fn(self, rhs: $vec2) -> Self::Output {
                 Self::Output {
                     x: self.x.$fn(rhs.x),
-                    y: self.x.$fn(rhs.y),
+                    y: self.y.$fn(rhs.y),
                 }
             }
         }
@@ -28,7 +28,7 @@ macro_rules! impl_op {
             fn $fn(self, rhs: &$vec2) -> Self::Output {
                 Self::Output {
                     x: self.x.$fn(rhs.x),
-                    y: self.x.$fn(rhs.y),
+                    y: self.y.$fn(rhs.y),
                 }
             }
         }
@@ -39,7 +39,7 @@ macro_rules! impl_op {
             fn $fn(self, rhs: $vec2) -> Self::Output {
                 Self::Output {
                     x: self.x.$fn(rhs.x),
-                    y: self.x.$fn(rhs.y),
+                    y: self.y.$fn(rhs.y),
                 }
             }
         }
@@ -50,7 +50,7 @@ macro_rules! impl_op {
             fn $fn(self, rhs: &$vec2) -> Self::Output {
                 Self::Output {
                     x: self.x.$fn(rhs.x),
-                    y: self.x.$fn(rhs.y),
+                    y: self.y.$fn(rhs.y),
                 }
             }
         }
@@ -110,8 +110,8 @@ macro_rules! impl_op {
             #[inline]
             fn $fn(self, rhs: $vec2) -> Self::Output {
                 Self::Output {
-                    x: self.add(rhs.x),
-                    y: self.add(rhs.y),
+                    x: self.$fn(rhs.x),
+                    y: self.$fn(rhs.y),
                 }
             }
         }
@@ -121,8 +121,8 @@ macro_rules! impl_op {
             #[inline]
             fn $fn(self, rhs: &$vec2) -> Self::Output {
                 Self::Output {
-                    x: self.add(rhs.x),
-                    y: self.add(rhs.y),
+                    x: self.$fn(rhs.x),
+                    y: self.$fn(rhs.y),
                 }
             }
         }
@@ -132,8 +132,8 @@ macro_rules! impl_op {
             #[inline]
             fn $fn(self, rhs: $vec2) -> Self::Output {
                 Self::Output {
-                    x: self.add(rhs.x),
-                    y: self.add(rhs.y),
+                    x: self.$fn(rhs.x),
+                    y: self.$fn(rhs.y),
                 }
             }
         }
@@ -143,8 +143,8 @@ macro_rules! impl_op {
             #[inline]
             fn $fn(self, rhs: &$vec2) -> Self::Output {
                 Self::Output {
-                    x: self.add(rhs.x),
-                    y: self.add(rhs.y),
+                    x: self.$fn(rhs.x),
+                    y: self.$fn(rhs.y),
                 }
             }
         }
