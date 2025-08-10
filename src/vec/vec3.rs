@@ -224,7 +224,7 @@ macro_rules! impl_op_assign {
     };
 }
 
-macro_rules! vec33s {
+macro_rules! vec3s {
     ($(($name:ident) => $type:ident), +) => {
         $(
             impl_op!(Add, add, $name, $type);
@@ -565,4 +565,4 @@ macro_rules! vec33s {
         )+
     };
 }
-vec33s!((Vec3) => f32, (DVec3) => f64);
+vec3s!((Vec3) => f32, (DVec3) => f64);
