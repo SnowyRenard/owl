@@ -203,7 +203,7 @@ macro_rules! impl_op_assign {
             }
         }
 
-        // Vec3 x type
+        // type x Vec3
         // ----------
         impl $op<$vec3> for $type {
             #[inline]
