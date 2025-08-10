@@ -1,6 +1,6 @@
 use core::ops::*;
 
-use crate::math;
+use crate::math::Math;
 
 pub type Rg = Vec2;
 pub type Uv = Vec2;
@@ -114,7 +114,7 @@ impl Vec2 {
     #[inline]
     #[must_use]
     pub fn length(self) -> f32 {
-        math::sqrt(self.length_squared())
+        Math::sqrt(self.length_squared())
     }
     #[inline]
     #[must_use]
@@ -132,40 +132,40 @@ impl Vec2 {
     #[must_use]
     pub fn round(self) -> Self {
         Self {
-            x: math::round(self.x),
-            y: math::round(self.y),
+            x: Math::round(self.x),
+            y: Math::round(self.y),
         }
     }
     #[inline]
     #[must_use]
     pub fn floor(self) -> Self {
         Self {
-            x: math::floor(self.x),
-            y: math::floor(self.y),
+            x: Math::floor(self.x),
+            y: Math::floor(self.y),
         }
     }
     #[inline]
     #[must_use]
     pub fn ceil(self) -> Self {
         Self {
-            x: math::ceil(self.x),
-            y: math::ceil(self.y),
+            x: Math::ceil(self.x),
+            y: Math::ceil(self.y),
         }
     }
     #[inline]
     #[must_use]
     pub fn trunc(self) -> Self {
         Self {
-            x: math::trunc(self.x),
-            y: math::trunc(self.y),
+            x: Math::trunc(self.x),
+            y: Math::trunc(self.y),
         }
     }
     #[inline]
     #[must_use]
     pub fn fract(self) -> Self {
         Self {
-            x: math::fract(self.x),
-            y: math::fract(self.y),
+            x: Math::fract(self.x),
+            y: Math::fract(self.y),
         }
     }
 
@@ -180,7 +180,7 @@ impl Vec2 {
         let n_dot_i = normal.dot(*self);
         let k = 1. - eta * eta * (1. - n_dot_i * n_dot_i);
         if k >= 0. {
-            eta * self - (eta * n_dot_i + math::sqrt(k)) * normal
+            eta * self - (eta * n_dot_i + Math::sqrt(k)) * normal
         } else {
             Self::ZERO
         }

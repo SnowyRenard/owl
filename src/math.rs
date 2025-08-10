@@ -1,72 +1,77 @@
-#[cfg(not(feature = "std"))]
-pub(crate) use core_math::*;
-#[cfg(feature = "std")]
-pub(crate) use std_math::*;
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), feature(core_float_math))]
 
-#[cfg(feature = "std")]
-pub mod std_math {
-    #[inline(always)]
-    pub(crate) fn sqrt(f: f32) -> f32 {
-        f32::sqrt(f)
-    }
-
-    #[inline(always)]
-    pub(crate) fn round(f: f32) -> f32 {
-        f32::round(f)
-    }
-
-    #[inline(always)]
-    pub(crate) fn trunc(f: f32) -> f32 {
-        f32::trunc(f)
-    }
-
-    #[inline(always)]
-    pub(crate) fn ceil(f: f32) -> f32 {
-        f32::ceil(f)
-    }
-
-    #[inline(always)]
-    pub(crate) fn floor(f: f32) -> f32 {
-        f32::floor(f)
-    }
-
-    #[inline(always)]
-    pub(crate) fn fract(f: f32) -> f32 {
-        f32::fract(f)
-    }
+/// A trait that provides an API for the math functions that don't have an implementation in std.
+pub(crate) trait Math {
+    fn sqrt(self) -> Self;
+    fn round(self) -> Self;
+    fn trunc(self) -> Self;
+    fn ceil(self) -> Self;
+    fn floor(self) -> Self;
+    fn fract(self) -> Self;
 }
 
-#[cfg(not(feature = "std"))]
-pub mod core_math {
-    use core::f32::math;
+/// A macro that provides both implementations for the std and experimental core implementations of [`Math`].
+macro_rules! impl_math {
+    ($($type: ident), +) => {
+        $(
+            impl Math for $type {
+                fn sqrt(self) -> Self {
+                    #[cfg(feature = "std")]
+                    {
+                        <$type>::sqrt(self)
+                    }
+                    #[cfg(not(feature = "std"))]
+                    core::$type::math::sqrt(self)
+                }
 
-    #[inline(always)]
-    pub(crate) fn sqrt(f: f32) -> f32 {
-        math::sqrt(f)
-    }
+                fn round(self) -> Self {
+                    #[cfg(feature = "std")]
+                    {
+                        <$type>::round(self)
+                    }
+                    #[cfg(not(feature = "std"))]
+                    core::$type::math::round(self)
+                }
 
-    #[inline(always)]
-    pub(crate) fn round(f: f32) -> f32 {
-        math::round(f)
-    }
+                fn trunc(self) -> Self {
+                    #[cfg(feature = "std")]
+                    {
+                        <$type>::trunc(self)
+                    }
+                    #[cfg(not(feature = "std"))]
+                    core::$type::math::trunc(self)
+                }
 
-    #[inline(always)]
-    pub(crate) fn trunc(f: f32) -> f32 {
-        math::trunc(f)
-    }
+                fn ceil(self) -> Self {
+                    #[cfg(feature = "std")]
+                    {
+                        <$type>::ceil(self)
+                    }
+                    #[cfg(not(feature = "std"))]
+                    core::$type::math::ceil(self)
+                }
 
-    #[inline(always)]
-    pub(crate) fn ceil(f: f32) -> f32 {
-        math::ceil(f)
-    }
+                fn floor(self) -> Self {
+                    #[cfg(feature = "std")]
+                    {
+                        <$type>::floor(self)
+                    }
+                    #[cfg(not(feature = "std"))]
+                    core::$type::math::floor(self)
+                }
 
-    #[inline(always)]
-    pub(crate) fn floor(f: f32) -> f32 {
-        math::floor(f)
-    }
-
-    #[inline(always)]
-    pub(crate) fn fract(f: f32) -> f32 {
-        math::fract(f)
-    }
+                fn fract(self) -> Self {
+                    #[cfg(feature = "std")]
+                    {
+                        <$type>::fract(self)
+                    }
+                    #[cfg(not(feature = "std"))]
+                    core::$type::math::fract(self)
+                }
+            }
+        )+
+    };
 }
+
+impl_math!(f32, f64);

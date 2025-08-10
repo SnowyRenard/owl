@@ -1,1136 +1,567 @@
-use core::ops::*;
+use crate::math::Math;
 
-use crate::math;
+use std::ops::*;
 
 pub type Rgb = Vec3;
 pub type Uvw = Vec3;
 pub type Point3 = Vec3;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Vec3 {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-}
-impl Vec3 {
-    pub const ZERO: Self = Self::splat(0.);
-    pub const ONE: Self = Self::splat(1.);
-    pub const NEG_ONE: Self = Self::splat(-1.);
-
-    pub const MIN: Self = Self::splat(f32::MIN);
-    pub const MAX: Self = Self::splat(f32::MAX);
-
-    pub const NAN: Self = Self::splat(f32::NAN);
-    pub const INFINITY: Self = Self::splat(f32::INFINITY);
-    pub const NEG_INFINITY: Self = Self::splat(f32::NEG_INFINITY);
-
-    pub const X: Self = Self::new(1., 0., 0.);
-    pub const Y: Self = Self::new(0., 1., 0.);
-    pub const Z: Self = Self::new(0., 0., 1.);
-    pub const NEG_X: Self = Self::new(-1., 0., 0.);
-    pub const NEG_Y: Self = Self::new(0., -1., 0.);
-    pub const NEG_Z: Self = Self::new(0., 0., -1.);
-
-    #[inline(always)]
-    #[must_use]
-    pub const fn new(x: f32, y: f32, z: f32) -> Self {
-        Self { x, y, z }
-    }
-
-    #[inline]
-    #[must_use]
-    pub const fn splat(value: f32) -> Self {
-        Self {
-            x: value,
-            y: value,
-            z: value,
-        }
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn map<F: Fn(f32) -> f32>(self, f: F) -> Self {
-        Self {
-            x: f(self.x),
-            y: f(self.y),
-            z: f(self.z),
-        }
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn dot(&self, rhs: Self) -> f32 {
-        (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
-    }
-    #[inline]
-    #[must_use]
-    pub fn cross(&self, rhs: Self) -> Self {
-        Self {
-            x: self.y * rhs.z - rhs.y * self.z,
-            y: self.z * rhs.x - rhs.z * self.x,
-            z: self.x * rhs.y - rhs.x * self.y,
-        }
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn min(self, rhs: Self) -> Self {
-        Self {
-            x: if self.x < rhs.x { self.x } else { rhs.x },
-            y: if self.y < rhs.y { self.y } else { rhs.y },
-            z: if self.z < rhs.z { self.z } else { rhs.z },
-        }
-    }
-    #[inline]
-    #[must_use]
-    pub fn max(self, rhs: Self) -> Self {
-        Self {
-            x: if self.x > rhs.x { self.x } else { rhs.x },
-            y: if self.y > rhs.y { self.y } else { rhs.y },
-            z: if self.z > rhs.z { self.z } else { rhs.z },
-        }
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn clamp(self, min: Self, max: Self) -> Self {
-        self.min(max).max(min)
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn min_element(self) -> f32 {
-        let min = |a, b| if a < b { a } else { b };
-        min(self.x, min(self.y, self.z))
-    }
-    #[inline]
-    #[must_use]
-    pub fn max_element(self) -> f32 {
-        let max = |a, b| if a > b { a } else { b };
-        max(self.x, max(self.y, self.z))
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn element_sum(self) -> f32 {
-        self.x + self.y + self.z
-    }
-    #[inline]
-    #[must_use]
-    pub fn element_product(self) -> f32 {
-        self.x * self.y * self.z
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn abs(self) -> Self {
-        Self {
-            x: self.x.abs(),
-            y: self.y.abs(),
-            z: self.z.abs(),
-        }
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn length(self) -> f32 {
-        math::sqrt(self.length_squared())
-    }
-    #[inline]
-    #[must_use]
-    pub fn length_squared(self) -> f32 {
-        self.dot(self)
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn normalize(self) -> Self {
-        self / self.length()
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn round(self) -> Self {
-        Self {
-            x: math::round(self.x),
-            y: math::round(self.y),
-            z: math::round(self.z),
-        }
-    }
-    #[inline]
-    #[must_use]
-    pub fn floor(self) -> Self {
-        Self {
-            x: math::floor(self.x),
-            y: math::floor(self.y),
-            z: math::floor(self.z),
-        }
-    }
-    #[inline]
-    #[must_use]
-    pub fn ceil(self) -> Self {
-        Self {
-            x: math::ceil(self.x),
-            y: math::ceil(self.y),
-            z: math::ceil(self.z),
-        }
-    }
-    #[inline]
-    #[must_use]
-    pub fn trunc(self) -> Self {
-        Self {
-            x: math::trunc(self.x),
-            y: math::trunc(self.y),
-            z: math::trunc(self.z),
-        }
-    }
-    #[inline]
-    #[must_use]
-    pub fn fract(self) -> Self {
-        Self {
-            x: math::fract(self.x),
-            y: math::fract(self.y),
-            z: math::fract(self.z),
-        }
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn reflect(&self, normal: Self) -> Self {
-        self - 2.0 * self.dot(normal) * normal
-    }
-    #[inline]
-    #[must_use]
-    pub fn refract(&self, normal: Self, eta: f32) -> Self {
-        let n_dot_i = normal.dot(*self);
-        let k = 1. - eta * eta * (1. - n_dot_i * n_dot_i);
-        if k >= 0. {
-            eta * self - (eta * n_dot_i + math::sqrt(k)) * normal
-        } else {
-            Self::ZERO
-        }
-    }
-}
-
-impl Index<usize> for Vec3 {
-    type Output = f32;
-
-    #[inline]
-    fn index(&self, index: usize) -> &Self::Output {
-        match index {
-            0 => &self.x,
-            1 => &self.y,
-            2 => &self.z,
-            _ => panic!("index out of bounds"),
-        }
-    }
-}
-impl IndexMut<usize> for Vec3 {
-    #[inline]
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        match index {
-            0 => &mut self.x,
-            1 => &mut self.y,
-            2 => &mut self.z,
-            _ => panic!("index out of bounds"),
-        }
-    }
-}
-
-impl From<f32> for Vec3 {
-    #[inline]
-    fn from(value: f32) -> Self {
-        Self::splat(value)
-    }
-}
-impl From<&f32> for Vec3 {
-    #[inline]
-    fn from(value: &f32) -> Self {
-        Self::splat(*value)
-    }
-}
-
-impl From<[f32; 3]> for Vec3 {
-    #[inline]
-    fn from(value: [f32; 3]) -> Self {
-        Self {
-            x: value[0],
-            y: value[1],
-            z: value[2],
-        }
-    }
-}
-impl From<&[f32; 3]> for Vec3 {
-    #[inline]
-    fn from(value: &[f32; 3]) -> Self {
-        Self {
-            x: value[0],
-            y: value[1],
-            z: value[2],
-        }
-    }
-}
-
-impl From<(f32, f32, f32)> for Vec3 {
-    #[inline]
-    fn from(value: (f32, f32, f32)) -> Self {
-        Self {
-            x: value.0,
-            y: value.1,
-            z: value.2,
-        }
-    }
-}
-impl From<&(f32, f32, f32)> for Vec3 {
-    #[inline]
-    fn from(value: &(f32, f32, f32)) -> Self {
-        Self {
-            x: value.0,
-            y: value.1,
-            z: value.2,
-        }
-    }
-}
-
-impl From<Vec3> for [f32; 3] {
-    #[inline]
-    fn from(value: Vec3) -> Self {
-        [value.x, value.y, value.z]
-    }
-}
-impl From<&Vec3> for [f32; 3] {
-    #[inline]
-    fn from(value: &Vec3) -> Self {
-        [value.x, value.y, value.z]
-    }
-}
-
-impl Default for Vec3 {
-    #[inline]
-    fn default() -> Self {
-        Self::splat(0.)
-    }
-}
-
-impl Neg for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn neg(self) -> Self::Output {
-        Self::Output {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-        }
-    }
-}
-impl Neg for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn neg(self) -> Self::Output {
-        Self::Output {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-        }
-    }
-}
-
-// Vec3 x Vec3
-// -----------
-impl Add<Vec3> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.add(rhs.x),
-            y: self.y.add(rhs.y),
-            z: self.z.add(rhs.z),
-        }
-    }
-}
-impl Add<&Vec3> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.add(rhs.x),
-            y: self.y.add(rhs.y),
-            z: self.z.add(rhs.z),
-        }
-    }
-}
-impl Add<Vec3> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.add(rhs.x),
-            y: self.y.add(rhs.y),
-            z: self.z.add(rhs.z),
-        }
-    }
-}
-impl Add<&Vec3> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.add(rhs.x),
-            y: self.y.add(rhs.y),
-            z: self.z.add(rhs.z),
-        }
-    }
-}
-
-impl Sub<Vec3> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.sub(rhs.x),
-            y: self.y.sub(rhs.y),
-            z: self.z.sub(rhs.z),
-        }
-    }
-}
-impl Sub<&Vec3> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.sub(rhs.x),
-            y: self.y.sub(rhs.y),
-            z: self.z.sub(rhs.z),
-        }
-    }
-}
-impl Sub<Vec3> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.sub(rhs.x),
-            y: self.y.sub(rhs.y),
-            z: self.z.sub(rhs.z),
-        }
-    }
-}
-impl Sub<&Vec3> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.sub(rhs.x),
-            y: self.y.sub(rhs.y),
-            z: self.z.sub(rhs.z),
-        }
-    }
-}
-
-impl Mul<Vec3> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.mul(rhs.x),
-            y: self.y.mul(rhs.y),
-            z: self.z.mul(rhs.z),
-        }
-    }
-}
-impl Mul<&Vec3> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.mul(rhs.x),
-            y: self.y.mul(rhs.y),
-            z: self.z.mul(rhs.z),
-        }
-    }
-}
-impl Mul<Vec3> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.mul(rhs.x),
-            y: self.y.mul(rhs.y),
-            z: self.z.mul(rhs.z),
-        }
-    }
-}
-impl Mul<&Vec3> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.mul(rhs.x),
-            y: self.y.mul(rhs.y),
-            z: self.z.mul(rhs.z),
-        }
-    }
-}
-
-impl Div<Vec3> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.div(rhs.x),
-            y: self.y.div(rhs.y),
-            z: self.z.div(rhs.z),
-        }
-    }
-}
-impl Div<&Vec3> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.div(rhs.x),
-            y: self.y.div(rhs.y),
-            z: self.z.div(rhs.z),
-        }
-    }
-}
-impl Div<Vec3> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.div(rhs.x),
-            y: self.y.div(rhs.y),
-            z: self.z.div(rhs.z),
-        }
-    }
-}
-impl Div<&Vec3> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x.div(rhs.x),
-            y: self.y.div(rhs.y),
-            z: self.z.div(rhs.z),
-        }
-    }
-}
-
-impl AddAssign<Vec3> for Vec3 {
-    #[inline]
-    fn add_assign(&mut self, rhs: Vec3) {
-        self.x.add_assign(rhs.x);
-        self.y.add_assign(rhs.y);
-        self.z.add_assign(rhs.z);
-    }
-}
-impl AddAssign<&Vec3> for Vec3 {
-    #[inline]
-    fn add_assign(&mut self, rhs: &Vec3) {
-        self.x.add_assign(rhs.x);
-        self.y.add_assign(rhs.y);
-        self.z.add_assign(rhs.z);
-    }
-}
-
-impl SubAssign<Vec3> for Vec3 {
-    #[inline]
-    fn sub_assign(&mut self, rhs: Vec3) {
-        self.x.sub_assign(rhs.x);
-        self.y.sub_assign(rhs.y);
-        self.z.sub_assign(rhs.z);
-    }
-}
-impl SubAssign<&Vec3> for Vec3 {
-    #[inline]
-    fn sub_assign(&mut self, rhs: &Vec3) {
-        self.x.sub_assign(rhs.x);
-        self.y.sub_assign(rhs.y);
-        self.z.sub_assign(rhs.z);
-    }
-}
-
-impl MulAssign<Vec3> for Vec3 {
-    #[inline]
-    fn mul_assign(&mut self, rhs: Vec3) {
-        self.x.mul_assign(rhs.x);
-        self.y.mul_assign(rhs.y);
-        self.z.mul_assign(rhs.z);
-    }
-}
-impl MulAssign<&Vec3> for Vec3 {
-    #[inline]
-    fn mul_assign(&mut self, rhs: &Vec3) {
-        self.x.mul_assign(rhs.x);
-        self.y.mul_assign(rhs.y);
-        self.z.mul_assign(rhs.z);
-    }
-}
-
-impl DivAssign<Vec3> for Vec3 {
-    #[inline]
-    fn div_assign(&mut self, rhs: Vec3) {
-        self.x.div_assign(rhs.x);
-        self.y.div_assign(rhs.y);
-        self.z.div_assign(rhs.z);
-    }
-}
-impl DivAssign<&Vec3> for Vec3 {
-    #[inline]
-    fn div_assign(&mut self, rhs: &Vec3) {
-        self.x.div_assign(rhs.x);
-        self.y.div_assign(rhs.y);
-        self.z.div_assign(rhs.z);
-    }
-}
-
-// Vec3 x f32
-// -----------
-impl Add<f32> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: f32) -> Self::Output {
-        Self::Output {
-            x: self.x.add(rhs),
-            y: self.y.add(rhs),
-            z: self.z.add(rhs),
-        }
-    }
-}
-impl Add<&f32> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: &f32) -> Self::Output {
-        Self::Output {
-            x: self.x.add(rhs),
-            y: self.y.add(rhs),
-            z: self.z.add(rhs),
-        }
-    }
-}
-impl Add<f32> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: f32) -> Self::Output {
-        Self::Output {
-            x: self.x.add(rhs),
-            y: self.y.add(rhs),
-            z: self.z.add(rhs),
-        }
-    }
-}
-impl Add<&f32> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: &f32) -> Self::Output {
-        Self::Output {
-            x: self.x.add(rhs),
-            y: self.y.add(rhs),
-            z: self.z.add(rhs),
-        }
-    }
-}
-
-impl Sub<f32> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: f32) -> Self::Output {
-        Self::Output {
-            x: self.x.sub(rhs),
-            y: self.y.sub(rhs),
-            z: self.z.sub(rhs),
-        }
-    }
-}
-impl Sub<&f32> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: &f32) -> Self::Output {
-        Self::Output {
-            x: self.x.sub(rhs),
-            y: self.y.sub(rhs),
-            z: self.z.sub(rhs),
-        }
-    }
-}
-impl Sub<f32> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: f32) -> Self::Output {
-        Self::Output {
-            x: self.x.sub(rhs),
-            y: self.y.sub(rhs),
-            z: self.z.sub(rhs),
-        }
-    }
-}
-impl Sub<&f32> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: &f32) -> Self::Output {
-        Self::Output {
-            x: self.x.sub(rhs),
-            y: self.y.sub(rhs),
-            z: self.z.sub(rhs),
-        }
-    }
-}
-
-impl Mul<f32> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: f32) -> Self::Output {
-        Self::Output {
-            x: self.x.mul(rhs),
-            y: self.y.mul(rhs),
-            z: self.z.mul(rhs),
-        }
-    }
-}
-impl Mul<&f32> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: &f32) -> Self::Output {
-        Self::Output {
-            x: self.x.mul(rhs),
-            y: self.y.mul(rhs),
-            z: self.z.mul(rhs),
-        }
-    }
-}
-impl Mul<f32> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: f32) -> Self::Output {
-        Self::Output {
-            x: self.x.mul(rhs),
-            y: self.y.mul(rhs),
-            z: self.z.mul(rhs),
-        }
-    }
-}
-impl Mul<&f32> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: &f32) -> Self::Output {
-        Self::Output {
-            x: self.x.mul(rhs),
-            y: self.y.mul(rhs),
-            z: self.z.mul(rhs),
-        }
-    }
-}
-
-impl Div<f32> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: f32) -> Self::Output {
-        Self::Output {
-            x: self.x.div(rhs),
-            y: self.y.div(rhs),
-            z: self.z.div(rhs),
-        }
-    }
-}
-impl Div<&f32> for Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: &f32) -> Self::Output {
-        Self::Output {
-            x: self.x.div(rhs),
-            y: self.y.div(rhs),
-            z: self.z.div(rhs),
-        }
-    }
-}
-impl Div<f32> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: f32) -> Self::Output {
-        Self::Output {
-            x: self.x.div(rhs),
-            y: self.y.div(rhs),
-            z: self.z.div(rhs),
-        }
-    }
-}
-impl Div<&f32> for &Vec3 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: &f32) -> Self::Output {
-        Self::Output {
-            x: self.x.div(rhs),
-            y: self.y.div(rhs),
-            z: self.z.div(rhs),
-        }
-    }
-}
-
-impl AddAssign<f32> for Vec3 {
-    #[inline]
-    fn add_assign(&mut self, rhs: f32) {
-        self.x.add_assign(rhs);
-        self.y.add_assign(rhs);
-        self.z.add_assign(rhs);
-    }
-}
-impl AddAssign<&f32> for Vec3 {
-    #[inline]
-    fn add_assign(&mut self, rhs: &f32) {
-        self.x.add_assign(rhs);
-        self.y.add_assign(rhs);
-        self.z.add_assign(rhs);
-    }
-}
-
-impl SubAssign<f32> for Vec3 {
-    #[inline]
-    fn sub_assign(&mut self, rhs: f32) {
-        self.x.sub_assign(rhs);
-        self.y.sub_assign(rhs);
-        self.z.sub_assign(rhs);
-    }
-}
-impl SubAssign<&f32> for Vec3 {
-    #[inline]
-    fn sub_assign(&mut self, rhs: &f32) {
-        self.x.sub_assign(rhs);
-        self.y.sub_assign(rhs);
-        self.z.sub_assign(rhs);
-    }
-}
-
-impl MulAssign<f32> for Vec3 {
-    #[inline]
-    fn mul_assign(&mut self, rhs: f32) {
-        self.x.mul_assign(rhs);
-        self.y.mul_assign(rhs);
-        self.z.mul_assign(rhs);
-    }
-}
-impl MulAssign<&f32> for Vec3 {
-    #[inline]
-    fn mul_assign(&mut self, rhs: &f32) {
-        self.x.mul_assign(rhs);
-        self.y.mul_assign(rhs);
-        self.z.mul_assign(rhs);
-    }
-}
-
-impl DivAssign<f32> for Vec3 {
-    #[inline]
-    fn div_assign(&mut self, rhs: f32) {
-        self.x.div_assign(rhs);
-        self.y.div_assign(rhs);
-        self.z.div_assign(rhs);
-    }
-}
-impl DivAssign<&f32> for Vec3 {
-    #[inline]
-    fn div_assign(&mut self, rhs: &f32) {
-        self.x.div_assign(rhs);
-        self.y.div_assign(rhs);
-        self.z.div_assign(rhs);
-    }
-}
-
-// f32 x Vec3
-// ----------
-impl Add<Vec3> for f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.add(rhs.x),
-            y: self.add(rhs.y),
-            z: self.add(rhs.z),
-        }
-    }
-}
-impl Add<Vec3> for &f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.add(rhs.x),
-            y: self.add(rhs.y),
-            z: self.add(rhs.z),
-        }
-    }
-}
-impl Add<&Vec3> for f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.add(rhs.x),
-            y: self.add(rhs.y),
-            z: self.add(rhs.z),
-        }
-    }
-}
-impl Add<&Vec3> for &f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn add(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.add(rhs.x),
-            y: self.add(rhs.y),
-            z: self.add(rhs.z),
-        }
-    }
-}
-
-impl Sub<Vec3> for f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.sub(rhs.x),
-            y: self.sub(rhs.y),
-            z: self.sub(rhs.z),
-        }
-    }
-}
-impl Sub<Vec3> for &f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.sub(rhs.x),
-            y: self.sub(rhs.y),
-            z: self.sub(rhs.z),
-        }
-    }
-}
-impl Sub<&Vec3> for f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.sub(rhs.x),
-            y: self.sub(rhs.y),
-            z: self.sub(rhs.z),
-        }
-    }
-}
-impl Sub<&Vec3> for &f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn sub(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.sub(rhs.x),
-            y: self.sub(rhs.y),
-            z: self.sub(rhs.z),
-        }
-    }
-}
-
-impl Mul<Vec3> for f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.mul(rhs.x),
-            y: self.mul(rhs.y),
-            z: self.mul(rhs.z),
-        }
-    }
-}
-impl Mul<Vec3> for &f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.mul(rhs.x),
-            y: self.mul(rhs.y),
-            z: self.mul(rhs.z),
-        }
-    }
-}
-impl Mul<&Vec3> for f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.mul(rhs.x),
-            y: self.mul(rhs.y),
-            z: self.mul(rhs.z),
-        }
-    }
-}
-impl Mul<&Vec3> for &f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn mul(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.mul(rhs.x),
-            y: self.mul(rhs.y),
-            z: self.mul(rhs.z),
-        }
-    }
-}
-
-impl Div<Vec3> for f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.div(rhs.x),
-            y: self.div(rhs.y),
-            z: self.div(rhs.z),
-        }
-    }
-}
-impl Div<Vec3> for &f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.div(rhs.x),
-            y: self.div(rhs.y),
-            z: self.div(rhs.z),
-        }
-    }
-}
-impl Div<&Vec3> for f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.div(rhs.x),
-            y: self.div(rhs.y),
-            z: self.div(rhs.z),
-        }
-    }
-}
-impl Div<&Vec3> for &f32 {
-    type Output = Vec3;
-
-    #[inline]
-    fn div(self, rhs: &Vec3) -> Self::Output {
-        Self::Output {
-            x: self.div(rhs.x),
-            y: self.div(rhs.y),
-            z: self.div(rhs.z),
-        }
-    }
-}
-
-impl AddAssign<Vec3> for f32 {
-    #[inline]
-    fn add_assign(&mut self, rhs: Vec3) {
-        self.add_assign(rhs.x);
-        self.add_assign(rhs.y);
-        self.add_assign(rhs.z);
-    }
-}
-impl AddAssign<&Vec3> for f32 {
-    #[inline]
-    fn add_assign(&mut self, rhs: &Vec3) {
-        self.add_assign(rhs.x);
-        self.add_assign(rhs.y);
-        self.add_assign(rhs.z);
-    }
-}
-
-impl SubAssign<Vec3> for f32 {
-    #[inline]
-    fn sub_assign(&mut self, rhs: Vec3) {
-        self.sub_assign(rhs.x);
-        self.sub_assign(rhs.y);
-        self.sub_assign(rhs.z);
-    }
-}
-impl SubAssign<&Vec3> for f32 {
-    #[inline]
-    fn sub_assign(&mut self, rhs: &Vec3) {
-        self.sub_assign(rhs.x);
-        self.sub_assign(rhs.y);
-        self.sub_assign(rhs.z);
-    }
-}
-
-impl MulAssign<Vec3> for f32 {
-    #[inline]
-    fn mul_assign(&mut self, rhs: Vec3) {
-        self.mul_assign(rhs.x);
-        self.mul_assign(rhs.y);
-        self.mul_assign(rhs.z);
-    }
-}
-impl MulAssign<&Vec3> for f32 {
-    #[inline]
-    fn mul_assign(&mut self, rhs: &Vec3) {
-        self.mul_assign(rhs.x);
-        self.mul_assign(rhs.y);
-        self.mul_assign(rhs.z);
-    }
-}
-
-impl DivAssign<Vec3> for f32 {
-    #[inline]
-    fn div_assign(&mut self, rhs: Vec3) {
-        self.div_assign(rhs.x);
-        self.div_assign(rhs.y);
-        self.div_assign(rhs.z);
-    }
-}
-impl DivAssign<&Vec3> for f32 {
-    #[inline]
-    fn div_assign(&mut self, rhs: &Vec3) {
-        self.div_assign(rhs.x);
-        self.div_assign(rhs.y);
-        self.div_assign(rhs.z);
-    }
-}
+macro_rules! impl_op {
+    ($op: ident, $fn: ident, $vec: ident, $type: ident) => {
+        // Vec x Vec
+        // ---------
+        impl $op<$vec> for $vec {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: $vec) -> Self::Output {
+                Self::Output {
+                    x: self.x.$fn(rhs.x),
+                    y: self.x.$fn(rhs.y),
+                    z: self.x.$fn(rhs.z),
+                }
+            }
+        }
+        impl $op<&$vec> for $vec {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: &$vec) -> Self::Output {
+                Self::Output {
+                    x: self.x.$fn(rhs.x),
+                    y: self.x.$fn(rhs.y),
+                    z: self.x.$fn(rhs.z),
+                }
+            }
+        }
+        impl $op<$vec> for &$vec {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: $vec) -> Self::Output {
+                Self::Output {
+                    x: self.x.$fn(rhs.x),
+                    y: self.x.$fn(rhs.y),
+                    z: self.x.$fn(rhs.z),
+                }
+            }
+        }
+        impl $op<&$vec> for &$vec {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: &$vec) -> Self::Output {
+                Self::Output {
+                    x: self.x.$fn(rhs.x),
+                    y: self.x.$fn(rhs.y),
+                    z: self.x.$fn(rhs.z),
+                }
+            }
+        }
+
+        // Vec x type
+        // ----------
+        impl $op<$type> for $vec {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: $type) -> Self::Output {
+                Self::Output {
+                    x: self.x.$fn(rhs),
+                    y: self.y.$fn(rhs),
+                    z: self.z.$fn(rhs),
+                }
+            }
+        }
+        impl $op<&$type> for $vec {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: &$type) -> Self::Output {
+                Self::Output {
+                    x: self.x.$fn(rhs),
+                    y: self.y.$fn(rhs),
+                    z: self.z.$fn(rhs),
+                }
+            }
+        }
+        impl $op<$type> for &$vec {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: $type) -> Self::Output {
+                Self::Output {
+                    x: self.x.$fn(rhs),
+                    y: self.y.$fn(rhs),
+                    z: self.z.$fn(rhs),
+                }
+            }
+        }
+        impl $op<&$type> for &$vec {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: &$type) -> Self::Output {
+                Self::Output {
+                    x: self.x.$fn(rhs),
+                    y: self.y.$fn(rhs),
+                    z: self.z.$fn(rhs),
+                }
+            }
+        }
+
+        // type x Vec
+        // ----------
+        impl $op<$vec> for $type {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: $vec) -> Self::Output {
+                Self::Output {
+                    x: self.add(rhs.x),
+                    y: self.add(rhs.y),
+                    z: self.add(rhs.z),
+                }
+            }
+        }
+        impl $op<&$vec> for $type {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: &$vec) -> Self::Output {
+                Self::Output {
+                    x: self.add(rhs.x),
+                    y: self.add(rhs.y),
+                    z: self.add(rhs.z),
+                }
+            }
+        }
+        impl $op<$vec> for &$type {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: $vec) -> Self::Output {
+                Self::Output {
+                    x: self.add(rhs.x),
+                    y: self.add(rhs.y),
+                    z: self.add(rhs.z),
+                }
+            }
+        }
+        impl $op<&$vec> for &$type {
+            type Output = $vec;
+
+            #[inline]
+            fn $fn(self, rhs: &$vec) -> Self::Output {
+                Self::Output {
+                    x: self.add(rhs.x),
+                    y: self.add(rhs.y),
+                    z: self.add(rhs.z),
+                }
+            }
+        }
+    };
+}
+
+macro_rules! impl_op_assign {
+    ($op: ident, $fn: ident, $vec: ident, $type: ident) => {
+        // Vec x Vec
+        // ---------
+        impl $op<$vec> for $vec {
+            #[inline]
+            fn $fn(&mut self, rhs: $vec) {
+                self.x.$fn(rhs.x);
+                self.y.$fn(rhs.y);
+                self.z.$fn(rhs.z);
+            }
+        }
+        impl $op<&$vec> for $vec {
+            #[inline]
+            fn $fn(&mut self, rhs: &$vec) {
+                self.x.$fn(rhs.x);
+                self.y.$fn(rhs.y);
+                self.z.$fn(rhs.z);
+            }
+        }
+
+        // Vec x type
+        // ----------
+        impl $op<$type> for $vec {
+            #[inline]
+            fn $fn(&mut self, rhs: $type) {
+                self.x.$fn(rhs);
+                self.y.$fn(rhs);
+                self.z.$fn(rhs);
+            }
+        }
+        impl $op<&$type> for $vec {
+            #[inline]
+            fn $fn(&mut self, rhs: &$type) {
+                self.x.$fn(rhs);
+                self.y.$fn(rhs);
+                self.z.$fn(rhs);
+            }
+        }
+
+        // Vec x type
+        // ----------
+        impl $op<$vec> for $type {
+            #[inline]
+            fn $fn(&mut self, rhs: $vec) {
+                self.$fn(rhs.x);
+                self.$fn(rhs.y);
+                self.$fn(rhs.z);
+            }
+        }
+        impl $op<&$vec> for $type {
+            #[inline]
+            fn $fn(&mut self, rhs: &$vec) {
+                self.$fn(rhs.x);
+                self.$fn(rhs.y);
+                self.$fn(rhs.z);
+            }
+        }
+    };
+}
+
+macro_rules! vec3s {
+    ($(($name:ident) => $type:ident), +) => {
+        $(
+            impl_op!(Add, add, $name, $type);
+            impl_op!(Sub, sub, $name, $type);
+            impl_op!(Mul, mul, $name, $type);
+            impl_op!(Div, div, $name, $type);
+
+            impl_op_assign!(AddAssign, add_assign, $name, $type);
+            impl_op_assign!(SubAssign, sub_assign, $name, $type);
+            impl_op_assign!(MulAssign, mul_assign, $name, $type);
+            impl_op_assign!(DivAssign, div_assign, $name, $type);
+
+            #[derive(Debug, Clone, Copy)]
+            pub struct $name {
+                pub x: $type,
+                pub y: $type,
+                pub z: $type,
+            }
+
+
+            impl $name {
+                pub const ZERO: Self = Self::splat(0.);
+                pub const ONE: Self = Self::splat(1.);
+                pub const NEG_ONE: Self = Self::splat(-1.);
+
+                pub const X: Self = Self::new(1., 0., 0.);
+                pub const Y: Self = Self::new(0., 1., 0.);
+                pub const Z: Self = Self::new(0., 0., 1.);
+
+                pub const NEG_X: Self = Self::new(-1., 0., 0.);
+                pub const NEG_Y: Self = Self::new(0., -1., 0.);
+                pub const NEG_Z: Self = Self::new(0., 0., -1.);
+
+                pub const MIN: Self = Self::splat(<$type>::MIN);
+                pub const MAX: Self = Self::splat(<$type>::MAX);
+
+                pub const INFINITY: Self = Self::splat(<$type>::INFINITY);
+                pub const NEG_INFINITY: Self = Self::splat(<$type>::NEG_INFINITY);
+
+                pub const NAN: Self = Self::splat(<$type>::NAN);
+
+                #[inline]
+                #[must_use]
+                pub const fn new(x: $type, y: $type, z: $type) -> Self {
+                    Self {x, y, z}
+                }
+
+                #[inline]
+                #[must_use]
+                pub const fn splat(value: $type) -> Self {
+                    Self {x: value, y: value, z: value}
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn map<F: Fn($type) -> $type>(self, f:F) -> Self {
+                    Self {
+                        x: f(self.x),
+                        y: f(self.y),
+                        z: f(self.z),
+                    }
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn dot(&self, other: Self) -> $type {
+                    (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
+                }
+                #[inline]
+                #[must_use]
+                pub fn cross(&self, other: Self) -> Self {
+                    Self {
+                        x: self.y * other.z - other.y * self.z,
+                        y: self.z * other.x - other.z * self.x,
+                        z: self.x * other.y - other.x * self.y,
+                    }
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn min(&self, other: Self) -> Self {
+                    Self {
+                        x: if self.x < other.x { self.x } else { other.x },
+                        y: if self.y < other.y { self.y } else { other.y },
+                        z: if self.z < other.z { self.z } else { other.z },
+                    }
+                }
+                #[inline]
+                #[must_use]
+                pub fn max(&self, other: Self) -> Self {
+                    Self {
+                        x: if self.x > other.x { self.x } else { other.x },
+                        y: if self.y > other.y { self.y } else { other.y },
+                        z: if self.z > other.z { self.z } else { other.z },
+                    }
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn clamp(self, min: Self, max: Self) -> Self {
+                    self.min(max).max(min)
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn min_element(self) -> $type {
+                    let min = |a, b| if a < b { a } else { b };
+                    min(self.x, min(self.y, self.z))
+                }
+                #[inline]
+                #[must_use]
+                pub fn max_element(self) -> $type {
+                    let max = |a, b| if a > b { a } else { b };
+                    max(self.x, max(self.y, self.z))
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn element_sum(self) -> $type {
+                    self.x + self.y + self.z
+                }
+                #[inline]
+                #[must_use]
+                pub fn element_product(self) -> $type {
+                    self.x * self.y * self.z
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn abs(self) -> Self {
+                    Self {
+                        x: self.x.abs(),
+                        y: self.y.abs(),
+                        z: self.z.abs(),
+                    }
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn length(self) -> $type {
+                    Math::sqrt(self.length_squared())
+                }
+                #[inline]
+                #[must_use]
+                pub fn length_squared(self) -> $type {
+                    self.dot(self)
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn normalize(self) -> Self {
+                    self / self.length()
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn round(self) -> Self {
+                    Self {
+                        x: Math::round(self.x),
+                        y: Math::round(self.y),
+                        z: Math::round(self.z),
+                    }
+                }
+                #[inline]
+                #[must_use]
+                pub fn floor(self) -> Self {
+                    Self {
+                        x: Math::floor(self.x),
+                        y: Math::floor(self.y),
+                        z: Math::floor(self.z),
+                    }
+                }
+                #[inline]
+                #[must_use]
+                pub fn ceil(self) -> Self {
+                    Self {
+                        x: Math::ceil(self.x),
+                        y: Math::ceil(self.y),
+                        z: Math::ceil(self.z),
+                    }
+                }
+                #[inline]
+                #[must_use]
+                pub fn trunc(self) -> Self {
+                    Self {
+                        x: Math::trunc(self.x),
+                        y: Math::trunc(self.y),
+                        z: Math::trunc(self.z),
+                    }
+                }
+                #[inline]
+                #[must_use]
+                pub fn fract(self) -> Self {
+                    Self {
+                        x: Math::fract(self.x),
+                        y: Math::fract(self.y),
+                        z: Math::fract(self.z),
+                    }
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn reflect(&self, normal: Self) -> Self {
+                    self - 2.0 * self.dot(normal) * normal
+                }
+                #[inline]
+                #[must_use]
+                pub fn refract(&self, normal: Self, eta: $type) -> Self {
+                    let n_dot_i = normal.dot(*self);
+                    let k = 1. - eta * eta * (1. - n_dot_i * n_dot_i);
+                    if k >= 0. {
+                        eta * self - (eta * n_dot_i + Math::sqrt(k)) * normal
+                    } else {
+                        Self::ZERO
+                    }
+                }
+            }
+
+            impl Index<usize> for $name {
+                type Output = $type;
+
+                #[inline]
+                fn index(&self, index: usize) -> &Self::Output {
+                    match index {
+                        0 => &self.x,
+                        1 => &self.y,
+                        2 => &self.z,
+                        _ => panic!("index out of bounds"),
+                    }
+                }
+            }
+            impl IndexMut<usize> for $name {
+                #[inline]
+                fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+                    match index {
+                        0 => &mut self.x,
+                        1 => &mut self.y,
+                        2 => &mut self.z,
+                        _ => panic!("index out of bounds"),
+                    }
+                }
+            }
+
+            impl Neg for $name {
+                type Output = $name;
+
+                #[inline]
+                fn neg(self) -> Self::Output {
+                    Self::Output {
+                        x: -self.x,
+                        y: -self.y,
+                        z: -self.z,
+                    }
+                }
+            }
+            impl Neg for &$name{
+                type Output = $name;
+
+                #[inline]
+                fn neg(self) -> Self::Output {
+                    Self::Output {
+                        x: -self.x,
+                        y: -self.y,
+                        z: -self.z,
+                    }
+                }
+            }
+
+            impl From<$type> for $name {
+                #[inline]
+                fn from(value: $type) -> Self {
+                    Self::splat(value)
+                }
+            }
+            impl From<&$type> for $name {
+                #[inline]
+                fn from(value: &$type) -> Self {
+                    Self::splat(*value)
+                }
+            }
+
+            impl From<[$type; 3]> for $name {
+                #[inline]
+                fn from(value: [$type; 3]) -> Self {
+                    Self {
+                        x: value[0],
+                        y: value[1],
+                        z: value[2],
+                    }
+                }
+            }
+            impl From<&[$type; 3]> for $name {
+                #[inline]
+                fn from(value: &[$type; 3]) -> Self {
+                    Self {
+                        x: value[0],
+                        y: value[1],
+                        z: value[2],
+                    }
+                }
+            }
+
+            impl From<($type, $type, $type)> for $name {
+                #[inline]
+                fn from(value: ($type, $type, $type)) -> Self {
+                    Self {
+                        x: value.0,
+                        y: value.1,
+                        z: value.2,
+                    }
+                }
+            }
+            impl From<&($type, $type, $type)> for $name {
+                #[inline]
+                fn from(value: &($type, $type, $type)) -> Self {
+                    Self {
+                        x: value.0,
+                        y: value.1,
+                        z: value.2,
+                    }
+                }
+            }
+
+            impl From<$name> for [$type; 3] {
+                #[inline]
+                fn from(value: $name) -> Self {
+                    [value.x, value.y, value.z]
+                }
+            }
+            impl From<&$name> for [$type; 3] {
+                #[inline]
+                fn from(value: &$name) -> Self {
+                    [value.x, value.y, value.z]
+                }
+            }
+
+        )+
+    };
+}
+vec3s!((Vec3) => f32, (DVec3) => f64);
