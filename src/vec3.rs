@@ -7,14 +7,14 @@ pub type Uvw = Vec3;
 pub type Point3 = Vec3;
 
 macro_rules! impl_op {
-    ($op: ident, $fn: ident, $vec: ident, $type: ident) => {
-        // Vec x Vec
+    ($op: ident, $fn: ident, $vec3: ident, $type: ident) => {
+        // Vec3 x Vec3
         // ---------
-        impl $op<$vec> for $vec {
-            type Output = $vec;
+        impl $op<$vec3> for $vec3 {
+            type Output = $vec3;
 
             #[inline]
-            fn $fn(self, rhs: $vec) -> Self::Output {
+            fn $fn(self, rhs: $vec3) -> Self::Output {
                 Self::Output {
                     x: self.x.$fn(rhs.x),
                     y: self.x.$fn(rhs.y),
@@ -22,11 +22,11 @@ macro_rules! impl_op {
                 }
             }
         }
-        impl $op<&$vec> for $vec {
-            type Output = $vec;
+        impl $op<&$vec3> for $vec3 {
+            type Output = $vec3;
 
             #[inline]
-            fn $fn(self, rhs: &$vec) -> Self::Output {
+            fn $fn(self, rhs: &$vec3) -> Self::Output {
                 Self::Output {
                     x: self.x.$fn(rhs.x),
                     y: self.x.$fn(rhs.y),
@@ -34,11 +34,11 @@ macro_rules! impl_op {
                 }
             }
         }
-        impl $op<$vec> for &$vec {
-            type Output = $vec;
+        impl $op<$vec3> for &$vec3 {
+            type Output = $vec3;
 
             #[inline]
-            fn $fn(self, rhs: $vec) -> Self::Output {
+            fn $fn(self, rhs: $vec3) -> Self::Output {
                 Self::Output {
                     x: self.x.$fn(rhs.x),
                     y: self.x.$fn(rhs.y),
@@ -46,11 +46,11 @@ macro_rules! impl_op {
                 }
             }
         }
-        impl $op<&$vec> for &$vec {
-            type Output = $vec;
+        impl $op<&$vec3> for &$vec3 {
+            type Output = $vec3;
 
             #[inline]
-            fn $fn(self, rhs: &$vec) -> Self::Output {
+            fn $fn(self, rhs: &$vec3) -> Self::Output {
                 Self::Output {
                     x: self.x.$fn(rhs.x),
                     y: self.x.$fn(rhs.y),
@@ -59,10 +59,10 @@ macro_rules! impl_op {
             }
         }
 
-        // Vec x type
+        // Vec3 x type
         // ----------
-        impl $op<$type> for $vec {
-            type Output = $vec;
+        impl $op<$type> for $vec3 {
+            type Output = $vec3;
 
             #[inline]
             fn $fn(self, rhs: $type) -> Self::Output {
@@ -73,8 +73,8 @@ macro_rules! impl_op {
                 }
             }
         }
-        impl $op<&$type> for $vec {
-            type Output = $vec;
+        impl $op<&$type> for $vec3 {
+            type Output = $vec3;
 
             #[inline]
             fn $fn(self, rhs: &$type) -> Self::Output {
@@ -85,8 +85,8 @@ macro_rules! impl_op {
                 }
             }
         }
-        impl $op<$type> for &$vec {
-            type Output = $vec;
+        impl $op<$type> for &$vec3 {
+            type Output = $vec3;
 
             #[inline]
             fn $fn(self, rhs: $type) -> Self::Output {
@@ -97,8 +97,8 @@ macro_rules! impl_op {
                 }
             }
         }
-        impl $op<&$type> for &$vec {
-            type Output = $vec;
+        impl $op<&$type> for &$vec3 {
+            type Output = $vec3;
 
             #[inline]
             fn $fn(self, rhs: &$type) -> Self::Output {
@@ -110,13 +110,13 @@ macro_rules! impl_op {
             }
         }
 
-        // type x Vec
+        // type x Vec3
         // ----------
-        impl $op<$vec> for $type {
-            type Output = $vec;
+        impl $op<$vec3> for $type {
+            type Output = $vec3;
 
             #[inline]
-            fn $fn(self, rhs: $vec) -> Self::Output {
+            fn $fn(self, rhs: $vec3) -> Self::Output {
                 Self::Output {
                     x: self.add(rhs.x),
                     y: self.add(rhs.y),
@@ -124,11 +124,11 @@ macro_rules! impl_op {
                 }
             }
         }
-        impl $op<&$vec> for $type {
-            type Output = $vec;
+        impl $op<&$vec3> for $type {
+            type Output = $vec3;
 
             #[inline]
-            fn $fn(self, rhs: &$vec) -> Self::Output {
+            fn $fn(self, rhs: &$vec3) -> Self::Output {
                 Self::Output {
                     x: self.add(rhs.x),
                     y: self.add(rhs.y),
@@ -136,11 +136,11 @@ macro_rules! impl_op {
                 }
             }
         }
-        impl $op<$vec> for &$type {
-            type Output = $vec;
+        impl $op<$vec3> for &$type {
+            type Output = $vec3;
 
             #[inline]
-            fn $fn(self, rhs: $vec) -> Self::Output {
+            fn $fn(self, rhs: $vec3) -> Self::Output {
                 Self::Output {
                     x: self.add(rhs.x),
                     y: self.add(rhs.y),
@@ -148,11 +148,11 @@ macro_rules! impl_op {
                 }
             }
         }
-        impl $op<&$vec> for &$type {
-            type Output = $vec;
+        impl $op<&$vec3> for &$type {
+            type Output = $vec3;
 
             #[inline]
-            fn $fn(self, rhs: &$vec) -> Self::Output {
+            fn $fn(self, rhs: &$vec3) -> Self::Output {
                 Self::Output {
                     x: self.add(rhs.x),
                     y: self.add(rhs.y),
@@ -164,29 +164,29 @@ macro_rules! impl_op {
 }
 
 macro_rules! impl_op_assign {
-    ($op: ident, $fn: ident, $vec: ident, $type: ident) => {
-        // Vec x Vec
+    ($op: ident, $fn: ident, $vec3: ident, $type: ident) => {
+        // Vec3 x Vec3
         // ---------
-        impl $op<$vec> for $vec {
+        impl $op<$vec3> for $vec3 {
             #[inline]
-            fn $fn(&mut self, rhs: $vec) {
+            fn $fn(&mut self, rhs: $vec3) {
                 self.x.$fn(rhs.x);
                 self.y.$fn(rhs.y);
                 self.z.$fn(rhs.z);
             }
         }
-        impl $op<&$vec> for $vec {
+        impl $op<&$vec3> for $vec3 {
             #[inline]
-            fn $fn(&mut self, rhs: &$vec) {
+            fn $fn(&mut self, rhs: &$vec3) {
                 self.x.$fn(rhs.x);
                 self.y.$fn(rhs.y);
                 self.z.$fn(rhs.z);
             }
         }
 
-        // Vec x type
+        // Vec3 x type
         // ----------
-        impl $op<$type> for $vec {
+        impl $op<$type> for $vec3 {
             #[inline]
             fn $fn(&mut self, rhs: $type) {
                 self.x.$fn(rhs);
@@ -194,7 +194,7 @@ macro_rules! impl_op_assign {
                 self.z.$fn(rhs);
             }
         }
-        impl $op<&$type> for $vec {
+        impl $op<&$type> for $vec3 {
             #[inline]
             fn $fn(&mut self, rhs: &$type) {
                 self.x.$fn(rhs);
@@ -203,19 +203,19 @@ macro_rules! impl_op_assign {
             }
         }
 
-        // Vec x type
+        // Vec3 x type
         // ----------
-        impl $op<$vec> for $type {
+        impl $op<$vec3> for $type {
             #[inline]
-            fn $fn(&mut self, rhs: $vec) {
+            fn $fn(&mut self, rhs: $vec3) {
                 self.$fn(rhs.x);
                 self.$fn(rhs.y);
                 self.$fn(rhs.z);
             }
         }
-        impl $op<&$vec> for $type {
+        impl $op<&$vec3> for $type {
             #[inline]
-            fn $fn(&mut self, rhs: &$vec) {
+            fn $fn(&mut self, rhs: &$vec3) {
                 self.$fn(rhs.x);
                 self.$fn(rhs.y);
                 self.$fn(rhs.z);
@@ -224,7 +224,7 @@ macro_rules! impl_op_assign {
     };
 }
 
-macro_rules! vec3s {
+macro_rules! vec33s {
     ($(($name:ident) => $type:ident), +) => {
         $(
             impl_op!(Add, add, $name, $type);
@@ -564,4 +564,4 @@ macro_rules! vec3s {
         )+
     };
 }
-vec3s!((Vec3) => f32, (DVec3) => f64);
+vec33s!((Vec3) => f32, (DVec3) => f64);
