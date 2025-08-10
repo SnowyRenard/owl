@@ -254,6 +254,7 @@ macro_rules! vec4s {
             impl_op_assign!(DivAssign, div_assign, $name, $type);
 
             #[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
+            #[repr(C)]
             #[derive(Debug, Clone, Copy)]
             pub struct $name {
                 pub x: $type,
