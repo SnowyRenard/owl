@@ -72,3 +72,7 @@ macro_rules! impl_math {
 }
 
 impl_math!(f32, f64);
+#[cfg(feature = "f16")]
+impl_math!(f16);
+#[cfg(feature = "f128")]
+impl_math!(f128);

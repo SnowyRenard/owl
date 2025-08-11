@@ -531,3 +531,7 @@ macro_rules! vec2s {
     };
 }
 vec2s!((Vec2) => f32, (DVec2) => f64);
+#[cfg(feature = "f16")]
+vec2s!((SVec2) => f16);
+#[cfg(feature = "f128")]
+vec2s!((LVec2) => f128);
