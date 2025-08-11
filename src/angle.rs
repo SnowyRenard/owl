@@ -1,3 +1,4 @@
+/// A type to make the angle APIs explicit.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Angle(f32);
 

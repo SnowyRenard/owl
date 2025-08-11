@@ -6,6 +6,7 @@ pub use vec2::*;
 pub use vec3::*;
 pub use vec4::*;
 
+/// A macro for swizzling vectors, the valid inputs are x,y,z,w.
 #[macro_export]
 macro_rules! swizzle {
     ($(($vec: expr, $a: ident, $b: ident, $c: ident, $d: ident) => $ret: ty)?) => {
