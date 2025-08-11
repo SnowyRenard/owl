@@ -570,4 +570,4 @@ vec3s!((Vec3) => f32, (DVec3) => f64);
 #[cfg(feature = "f16")]
 vec3s!((SVec3) => f16);
 #[cfg(feature = "f128")]
-vec3s!((LVec3) => f128);
+vec3s!((LdVec3) => f128);
