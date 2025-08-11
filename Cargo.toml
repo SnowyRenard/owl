@@ -9,5 +9,5 @@ bytemuck = { version = "*", optional = true, features = [ "derive" ] }
 [features]
 default = [ "std" ]
 std = []
-f16 = []
-f128 = []
+f16 = [ "bytemuck?/nightly_float" ]
+f128 = [ "bytemuck?/nightly_float" ]
