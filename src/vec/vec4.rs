@@ -604,6 +604,6 @@ macro_rules! vec4s {
 }
 vec4s!((Vec4) => f32, (DVec4) => f64);
 #[cfg(feature = "f16")]
-vec4s!((SVec4) => f16);
+vec4s!((F16Vec4) => f16);
 #[cfg(feature = "f128")]
-vec4s!((LdVec4) => f128);
+vec4s!((F128Vec4) => f128);

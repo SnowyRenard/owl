@@ -568,6 +568,6 @@ macro_rules! vec3s {
 }
 vec3s!((Vec3) => f32, (DVec3) => f64);
 #[cfg(feature = "f16")]
-vec3s!((SVec3) => f16);
+vec3s!((F16Vec3) => f16);
 #[cfg(feature = "f128")]
-vec3s!((LdVec3) => f128);
+vec3s!((F128Vec3) => f128);
