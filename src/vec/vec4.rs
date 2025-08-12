@@ -4,6 +4,158 @@ use core::ops::*;
 
 pub type Rgba = Vec4;
 
+macro_rules! impl_signed {
+    ($(($vec3: ident => $type: ident)),+) => {
+        $(
+            impl $vec3 {
+                pub const NEG_ONE: Self = Self::splat(-1 as $type);
+
+                pub const NEG_X: Self = Self::new(-1 as $type, 0 as $type, 0 as $type, 0 as $type);
+                pub const NEG_Y: Self = Self::new(0 as $type, -1 as $type, 0 as $type, 0 as $type);
+                pub const NEG_Z: Self = Self::new(0 as $type, 0 as $type , -1 as $type, 0 as $type);
+                pub const NEG_W: Self = Self::new(0 as $type, 0 as $type , 0 as $type, -1 as $type);
+
+                #[inline]
+                #[must_use]
+                pub fn abs(self) -> Self {
+                    Self {
+                        x: self.x.abs(),
+                        y: self.y.abs(),
+                        z: self.z.abs(),
+                        w: self.w.abs(),
+                    }
+                }
+            }
+
+            impl Neg for $vec3 {
+                type Output = $vec3;
+
+                #[inline]
+                fn neg(self) -> Self::Output {
+                    Self::Output {
+                        x: -self.x,
+                        y: -self.y,
+                        z: -self.z,
+                        w: -self.w,
+                    }
+                }
+            }
+            impl Neg for &$vec3 {
+                type Output = $vec3;
+
+                #[inline]
+                fn neg(self) -> Self::Output {
+                    Self::Output {
+                        x: -self.x,
+                        y: -self.y,
+                        z: -self.z,
+                        w: -self.w,
+                    }
+                }
+            }
+        )+
+    };
+}
+
+macro_rules! impl_float {
+    ($(($vec3: ident => $type: ident)), +) => {
+        $(
+            impl_signed!(($vec3 => $type));
+            impl $vec3 {
+                pub const INFINITY: Self = Self::splat(<$type>::INFINITY);
+                pub const NEG_INFINITY: Self = Self::splat(<$type>::NEG_INFINITY);
+
+                pub const NAN: Self = Self::splat(<$type>::NAN);
+
+                #[inline]
+                #[must_use]
+                pub fn round(self) -> Self {
+                    Self {
+                        x: Math::round(self.x),
+                        y: Math::round(self.y),
+                        z: Math::round(self.z),
+                        w: Math::round(self.w),
+                    }
+                }
+                #[inline]
+                #[must_use]
+                pub fn floor(self) -> Self {
+                    Self {
+                        x: Math::floor(self.x),
+                        y: Math::floor(self.y),
+                        z: Math::floor(self.z),
+                        w: Math::floor(self.w),
+                    }
+                }
+                #[inline]
+                #[must_use]
+                pub fn ceil(self) -> Self {
+                    Self {
+                        x: Math::ceil(self.x),
+                        y: Math::ceil(self.y),
+                        z: Math::ceil(self.z),
+                        w: Math::ceil(self.w),
+                    }
+                }
+                #[inline]
+                #[must_use]
+                pub fn trunc(self) -> Self {
+                    Self {
+                        x: Math::trunc(self.x),
+                        y: Math::trunc(self.y),
+                        z: Math::trunc(self.z),
+                        w: Math::trunc(self.w),
+                    }
+                }
+                #[inline]
+                #[must_use]
+                pub fn fract(self) -> Self {
+                    Self {
+                        x: Math::fract(self.x),
+                        y: Math::fract(self.y),
+                        z: Math::fract(self.z),
+                        w: Math::fract(self.w),
+                    }
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn length(self) -> $type {
+                    Math::sqrt(self.length_squared())
+                }
+                #[inline]
+                #[must_use]
+                pub fn length_squared(self) -> $type {
+                    self.dot(self)
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn normalize(self) -> Self {
+                    self / self.length()
+                }
+
+                #[inline]
+                #[must_use]
+                pub fn reflect(self, normal: Self) -> Self {
+                    self - 2 as $type * self.dot(normal) * normal
+                }
+                #[inline]
+                #[must_use]
+                pub fn refract(self, normal: Self, eta: $type) -> Self {
+                    let n_dot_i = normal.dot(self);
+                    let k = 1 as $type - eta * eta * (1 as $type - n_dot_i * n_dot_i);
+                    if k >= 0 as $type {
+                        eta * self - (eta * n_dot_i + Math::sqrt(k)) * normal
+                    } else {
+                        Self::ZERO
+                    }
+                }
+            }
+        )+
+    };
+}
+
 macro_rules! impl_op {
     ($op: ident, $fn: ident, $vec4: ident, $type: ident) => {
         // Vec4 x Vec4
@@ -241,7 +393,7 @@ macro_rules! impl_op_assign {
 }
 
 macro_rules! vec4s {
-    ($(($name:ident) => $type:ident), +) => {
+    ($(($name:ident => $type:ident)), +) => {
         $(
             impl_op!(Add, add, $name, $type);
             impl_op!(Sub, sub, $name, $type);
@@ -265,27 +417,17 @@ macro_rules! vec4s {
 
 
             impl $name {
-                pub const ZERO: Self = Self::splat(0.);
-                pub const ONE: Self = Self::splat(1.);
-                pub const NEG_ONE: Self = Self::splat(-1.);
+                pub const ZERO: Self = Self::splat(0 as $type);
+                pub const ONE: Self = Self::splat(1 as $type);
 
-                pub const X: Self = Self::new(1., 0., 0., 0.);
-                pub const Y: Self = Self::new(0., 1., 0., 0.);
-                pub const Z: Self = Self::new(0., 0., 1., 0.);
-                pub const W: Self = Self::new(0., 0., 0., 1.);
+                pub const X: Self = Self::new(1 as $type , 0 as $type, 0 as $type, 0 as $type);
+                pub const Y: Self = Self::new(0 as $type , 1 as $type, 0 as $type, 0 as $type);
+                pub const Z: Self = Self::new(0 as $type , 0 as $type, 1 as $type, 0 as $type);
+                pub const W: Self = Self::new(0 as $type , 0 as $type, 0 as $type, 1 as $type);
 
-                pub const NEG_X: Self = Self::new(-1., 0., 0., 0.);
-                pub const NEG_Y: Self = Self::new(0., -1., 0., 0.);
-                pub const NEG_Z: Self = Self::new(0., 0., -1., 0.);
-                pub const NEG_W: Self = Self::new(0., 0., 0., -1.);
 
                 pub const MIN: Self = Self::splat(<$type>::MIN);
                 pub const MAX: Self = Self::splat(<$type>::MAX);
-
-                pub const INFINITY: Self = Self::splat(<$type>::INFINITY);
-                pub const NEG_INFINITY: Self = Self::splat(<$type>::NEG_INFINITY);
-
-                pub const NAN: Self = Self::splat(<$type>::NAN);
 
                 #[inline]
                 #[must_use]
@@ -375,102 +517,6 @@ macro_rules! vec4s {
                 pub fn element_product(self) -> $type {
                     self.x * self.y * self.z * self.w
                 }
-
-                #[inline]
-                #[must_use]
-                pub fn abs(self) -> Self {
-                    Self {
-                        x: self.x.abs(),
-                        y: self.y.abs(),
-                        z: self.z.abs(),
-                        w: self.w.abs(),
-                    }
-                }
-
-                #[inline]
-                #[must_use]
-                pub fn length(self) -> $type {
-                    Math::sqrt(self.length_squared())
-                }
-                #[inline]
-                #[must_use]
-                pub fn length_squared(self) -> $type {
-                    self.dot(self)
-                }
-
-                #[inline]
-                #[must_use]
-                pub fn normalize(self) -> Self {
-                    self / self.length()
-                }
-
-                #[inline]
-                #[must_use]
-                pub fn round(self) -> Self {
-                    Self {
-                        x: Math::round(self.x),
-                        y: Math::round(self.y),
-                        z: Math::round(self.z),
-                        w: Math::round(self.w),
-                    }
-                }
-                #[inline]
-                #[must_use]
-                pub fn floor(self) -> Self {
-                    Self {
-                        x: Math::floor(self.x),
-                        y: Math::floor(self.y),
-                        z: Math::floor(self.z),
-                        w: Math::floor(self.w),
-                    }
-                }
-                #[inline]
-                #[must_use]
-                pub fn ceil(self) -> Self {
-                    Self {
-                        x: Math::ceil(self.x),
-                        y: Math::ceil(self.y),
-                        z: Math::ceil(self.z),
-                        w: Math::ceil(self.w),
-                    }
-                }
-                #[inline]
-                #[must_use]
-                pub fn trunc(self) -> Self {
-                    Self {
-                        x: Math::trunc(self.x),
-                        y: Math::trunc(self.y),
-                        z: Math::trunc(self.z),
-                        w: Math::trunc(self.w),
-                    }
-                }
-                #[inline]
-                #[must_use]
-                pub fn fract(self) -> Self {
-                    Self {
-                        x: Math::fract(self.x),
-                        y: Math::fract(self.y),
-                        z: Math::fract(self.z),
-                        w: Math::fract(self.w),
-                    }
-                }
-
-                #[inline]
-                #[must_use]
-                pub fn reflect(self, normal: Self) -> Self {
-                    self - 2.0 * self.dot(normal) * normal
-                }
-                #[inline]
-                #[must_use]
-                pub fn refract(self, normal: Self, eta: $type) -> Self {
-                    let n_dot_i = normal.dot(self);
-                    let k = 1. - eta * eta * (1. - n_dot_i * n_dot_i);
-                    if k >= 0. {
-                        eta * self - (eta * n_dot_i + Math::sqrt(k)) * normal
-                    } else {
-                        Self::ZERO
-                    }
-                }
             }
 
             impl Index<usize> for $name {
@@ -496,33 +542,6 @@ macro_rules! vec4s {
                         2 => &mut self.z,
                         3 => &mut self.w,
                         _ => panic!("index out of bounds"),
-                    }
-                }
-            }
-
-            impl Neg for $name {
-                type Output = $name;
-
-                #[inline]
-                fn neg(self) -> Self::Output {
-                    Self::Output {
-                        x: -self.x,
-                        y: -self.y,
-                        z: -self.z,
-                        w: -self.w,
-                    }
-                }
-            }
-            impl Neg for &$name{
-                type Output = $name;
-
-                #[inline]
-                fn neg(self) -> Self::Output {
-                    Self::Output {
-                        x: -self.x,
-                        y: -self.y,
-                        z: -self.z,
-                        w: -self.w,
                     }
                 }
             }
@@ -602,8 +621,30 @@ macro_rules! vec4s {
         )+
     };
 }
-vec4s!((Vec4) => f32, (DVec4) => f64);
+vec4s!((Vec4 => f32), (DVec4 => f64));
+impl_float!((Vec4 =>f32), (DVec4=> f64));
+
+vec4s!((I8Vec4 => i8), (U8Vec4 => u8),
+    (I16Vec4 => i16), (U16Vec4 => u16),
+    (IVec4 => i32), (UVec4 => u32),
+    (I64Vec4 => i64), (U64Vec4 => u64),
+    (I128Vec4 => i128), (U128Vec4 => u128),
+    (IsizeVec4 => isize), (UsizeVec4 => usize));
+impl_signed!(
+    (I8Vec4 => i8),
+    (I16Vec4 => i16),
+    (IVec4 => i32),
+    (I64Vec4 => i64),
+    (I128Vec4 => i128),
+    (IsizeVec4 => isize)
+);
+
 #[cfg(feature = "f16")]
-vec4s!((F16Vec4) => f16);
+vec4s!((F16Vec4 => f16));
+#[cfg(feature = "f16")]
+impl_float!((F16Vec4 => f16));
+
 #[cfg(feature = "f128")]
-vec4s!((F128Vec4) => f128);
+vec4s!((F128Vec4 => f128));
+#[cfg(feature = "f128")]
+impl_float!((F128Vec4 => f128));
