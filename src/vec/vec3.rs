@@ -345,25 +345,6 @@ macro_rules! impl_op_assign {
                 self.z.$fn(rhs);
             }
         }
-
-        // type x Vec3
-        // ----------
-        impl $op<$vec3> for $type {
-            #[inline]
-            fn $fn(&mut self, rhs: $vec3) {
-                self.$fn(rhs.x);
-                self.$fn(rhs.y);
-                self.$fn(rhs.z);
-            }
-        }
-        impl $op<&$vec3> for $type {
-            #[inline]
-            fn $fn(&mut self, rhs: &$vec3) {
-                self.$fn(rhs.x);
-                self.$fn(rhs.y);
-                self.$fn(rhs.z);
-            }
-        }
     };
 }
 
