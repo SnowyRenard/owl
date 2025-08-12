@@ -353,7 +353,10 @@ macro_rules! vec2s {
             impl_op_assign!(MulAssign, mul_assign, $name, $type);
             impl_op_assign!(DivAssign, div_assign, $name, $type);
 
-            #[cfg_attr(feature = "bytemuck", derive(bytemuck::Pod, bytemuck::Zeroable))]
+            #[cfg(feature = "bytemuck")]
+            unsafe impl bytemuck::Pod for $name {}
+            #[cfg(feature = "bytemuck")]
+            unsafe impl bytemuck::Zeroable for $name {}
             #[repr(C)]
             #[derive(Debug, Clone, Copy)]
             pub struct $name {
