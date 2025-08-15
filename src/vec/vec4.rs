@@ -5,9 +5,9 @@ use core::ops::*;
 pub type Rgba = Vec4;
 
 macro_rules! impl_signed {
-    ($(($vec3: ident => $type: ident)),+) => {
+    ($(($vec4: ident => $type: ident)),+) => {
         $(
-            impl $vec3 {
+            impl $vec4 {
                 pub const NEG_ONE: Self = Self::splat(-1 as $type);
 
                 pub const NEG_X: Self = Self::new(-1 as $type, 0 as $type, 0 as $type, 0 as $type);
@@ -27,8 +27,8 @@ macro_rules! impl_signed {
                 }
             }
 
-            impl Neg for $vec3 {
-                type Output = $vec3;
+            impl Neg for $vec4 {
+                type Output = $vec4;
 
                 #[inline]
                 fn neg(self) -> Self::Output {
@@ -40,8 +40,8 @@ macro_rules! impl_signed {
                     }
                 }
             }
-            impl Neg for &$vec3 {
-                type Output = $vec3;
+            impl Neg for &$vec4 {
+                type Output = $vec4;
 
                 #[inline]
                 fn neg(self) -> Self::Output {
@@ -58,10 +58,10 @@ macro_rules! impl_signed {
 }
 
 macro_rules! impl_float {
-    ($(($vec3: ident => $type: ident)), +) => {
+    ($(($vec4: ident => $type: ident)), +) => {
         $(
-            impl_signed!(($vec3 => $type));
-            impl $vec3 {
+            impl_signed!(($vec4 => $type));
+            impl $vec4 {
                 pub const INFINITY: Self = Self::splat(<$type>::INFINITY);
                 pub const NEG_INFINITY: Self = Self::splat(<$type>::NEG_INFINITY);
 
