@@ -8,64 +8,27 @@ pub(crate) trait Math {
     fn fract(self) -> Self;
 }
 
+macro_rules! impl_fn {
+    ($type: ident, ($($fn: ident),*)) => {
+            $(
+                fn $fn(self) -> Self {
+                    #[cfg(feature = "std")]
+                    {
+                        <$type>::$fn(self)
+                    }
+                    #[cfg(not(feature = "std"))]
+                    core::$type::math::$fn(self)
+                }
+            )*
+        }
+}
+
 /// A macro that provides both implementations for the std and experimental core implementations of [`Math`].
 macro_rules! impl_math {
     ($($type: ident), +) => {
         $(
             impl Math for $type {
-                fn sqrt(self) -> Self {
-                    #[cfg(feature = "std")]
-                    {
-                        <$type>::sqrt(self)
-                    }
-                    #[cfg(not(feature = "std"))]
-                    core::$type::math::sqrt(self)
-                }
-
-                fn round(self) -> Self {
-                    #[cfg(feature = "std")]
-                    {
-                        <$type>::round(self)
-                    }
-                    #[cfg(not(feature = "std"))]
-                    core::$type::math::round(self)
-                }
-
-                fn trunc(self) -> Self {
-                    #[cfg(feature = "std")]
-                    {
-                        <$type>::trunc(self)
-                    }
-                    #[cfg(not(feature = "std"))]
-                    core::$type::math::trunc(self)
-                }
-
-                fn ceil(self) -> Self {
-                    #[cfg(feature = "std")]
-                    {
-                        <$type>::ceil(self)
-                    }
-                    #[cfg(not(feature = "std"))]
-                    core::$type::math::ceil(self)
-                }
-
-                fn floor(self) -> Self {
-                    #[cfg(feature = "std")]
-                    {
-                        <$type>::floor(self)
-                    }
-                    #[cfg(not(feature = "std"))]
-                    core::$type::math::floor(self)
-                }
-
-                fn fract(self) -> Self {
-                    #[cfg(feature = "std")]
-                    {
-                        <$type>::fract(self)
-                    }
-                    #[cfg(not(feature = "std"))]
-                    core::$type::math::fract(self)
-                }
+                impl_fn!($type, (sqrt, round, trunc, ceil, floor, fract));
             }
         )+
     };
