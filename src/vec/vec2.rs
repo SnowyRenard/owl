@@ -52,7 +52,7 @@ macro_rules! impl_signed {
 }
 
 macro_rules! impl_float {
-    ($(($vec2: ident => $type: ident)), +) => {
+    ($(($vec2: ident => $type: ty)), +) => {
         $(
             impl_signed!(($vec2 => $type));
             impl $vec2 {
@@ -141,7 +141,7 @@ macro_rules! impl_float {
 }
 
 macro_rules! impl_op {
-    ($op: ident, $fn: ident, $vec2: ident, $type: ident) => {
+    ($op: ident, $fn: ident, $vec2: ident, $type: ty) => {
         // Vec2 x Vec2
         // ---------
         impl $op<$vec2> for $vec2 {
@@ -286,7 +286,7 @@ macro_rules! impl_op {
 }
 
 macro_rules! impl_op_assign {
-    ($op: ident, $fn: ident, $vec2: ident, $type: ident) => {
+    ($op: ident, $fn: ident, $vec2: ident, $type: ty) => {
         // Vec2 x Vec2
         // ---------
         impl $op<$vec2> for $vec2 {
@@ -324,7 +324,7 @@ macro_rules! impl_op_assign {
 }
 
 macro_rules! vec2s {
-    ($(($name:ident => $type:ident)), +) => {
+    ($(($name:ident => $type:ty)), +) => {
         $(
             impl_op!(Add, add, $name, $type);
             impl_op!(Sub, sub, $name, $type);
@@ -355,8 +355,8 @@ macro_rules! vec2s {
                 pub const X: Self = Self::new(1 as $type, 0 as $type);
                 pub const Y: Self = Self::new(0 as $type, 1 as $type);
 
-                pub const MIN: Self = Self::splat($type::MIN);
-                pub const MAX: Self = Self::splat($type::MAX);
+                pub const MIN: Self = Self::splat(<$type>::MIN);
+                pub const MAX: Self = Self::splat(<$type>::MAX);
 
                 #[inline]
                 #[must_use]
