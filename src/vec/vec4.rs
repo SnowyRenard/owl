@@ -5,7 +5,7 @@ use core::ops::*;
 pub type Rgba = Vec4;
 
 macro_rules! impl_signed {
-    ($(($vec4: ident => $type: ident)),+) => {
+    ($(($vec4: ident => $type: ty)),+) => {
         $(
             impl $vec4 {
                 pub const NEG_ONE: Self = Self::splat(-1 as $type);

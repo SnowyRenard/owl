@@ -7,7 +7,7 @@ pub type Uvw = Vec3;
 pub type Point3 = Vec3;
 
 macro_rules! impl_signed {
-    ($(($vec3: ident => $type: ident)),+) => {
+    ($(($vec3: ident => $type: ty)),+) => {
         $(
             impl $vec3 {
                 pub const NEG_ONE: Self = Self::splat(-1 as $type);
