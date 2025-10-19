@@ -382,8 +382,8 @@ macro_rules! vec3s {
                 pub const Y: Self = Self::new(0 as $type, 1 as $type, 0 as $type);
                 pub const Z: Self = Self::new(0 as $type, 0 as $type, 1 as $type);
 
-                pub const MIN: Self = Self::splat(<$type>::MIN);
-                pub const MAX: Self = Self::splat(<$type>::MAX);
+                pub const MIN: Self = Self::splat($type::MIN);
+                pub const MAX: Self = Self::splat($type::MAX);
 
                 #[inline]
                 #[must_use]
