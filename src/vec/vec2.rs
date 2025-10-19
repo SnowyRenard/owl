@@ -52,7 +52,7 @@ macro_rules! impl_signed {
 }
 
 macro_rules! impl_float {
-    ($(($vec2: ident => $type: ty)), +) => {
+    ($(($vec2: ident => $type: ty)),+) => {
         $(
             impl_signed!(($vec2 => $type));
             impl $vec2 {
@@ -324,7 +324,7 @@ macro_rules! impl_op_assign {
 }
 
 macro_rules! vec2s {
-    ($(($name:ident => $type:ty)), +) => {
+    ($(($name:ident => $type:ty)),+) => {
         $(
             impl_op!(Add, add, $name, $type);
             impl_op!(Sub, sub, $name, $type);

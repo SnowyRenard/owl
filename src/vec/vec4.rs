@@ -58,7 +58,7 @@ macro_rules! impl_signed {
 }
 
 macro_rules! impl_float {
-    ($(($vec4: ident => $type: ty)), +) => {
+    ($(($vec4: ident => $type: ty)),+) => {
         $(
             impl_signed!(($vec4 => $type));
             impl $vec4 {

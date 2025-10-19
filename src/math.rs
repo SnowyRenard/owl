@@ -9,7 +9,7 @@ pub(crate) trait Math {
 }
 
 macro_rules! impl_fn {
-    ($type: ident, ($($fn: ident),*)) => {
+    ($type: ident, ($($fn: ident),+)) => {
             $(
                 fn $fn(self) -> Self {
                     #[cfg(feature = "std")]
@@ -19,13 +19,13 @@ macro_rules! impl_fn {
                     #[cfg(not(feature = "std"))]
                     core::$type::math::$fn(self)
                 }
-            )*
+            )+
         }
 }
 
 /// A macro that provides both implementations for the std and experimental core implementations of [`Math`].
 macro_rules! impl_math {
-    ($($type: ident), +) => {
+    ($($type: ident),+) => {
         $(
             impl Math for $type {
                 impl_fn!($type, (sqrt, round, trunc, ceil, floor, fract));
