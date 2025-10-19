@@ -352,15 +352,6 @@ macro_rules! vec2s {
                 pub const ZERO: Self = Self::splat(0 as $type);
                 pub const ONE: Self = Self::splat(1 as $type);
 
-                pub const X: Self = Self::new(1 as $type, 0 as $type);
-                pub const Y: Self = Self::new(0 as $type, 1 as $type);
-
-                pub const MIN: Self = Self::splat(<$type>::MIN);
-                pub const MAX: Self = Self::splat(<$type>::MAX);
-
-                #[inline]
-                #[must_use]
-                pub const fn new(x: $type, y: $type,) -> Self {
                     Self {x, y}
                 }
 
@@ -384,15 +375,6 @@ macro_rules! vec2s {
                 pub fn dot(self, other: Self) -> $type {
                     (self.x * other.x) + (self.y * other.y)
                 }
-                // #[inline]
-                // #[must_use]
-                // pub fn cross(self, other: Self) -> Self {
-                //     Self {
-                //         x: self.y * other.z - other.y * self.z,
-                //         y: self.z * other.x - other.z * self.x,
-                //         z: self.x * other.y - other.x * self.y,
-                //     }
-                // }
 
                 #[inline]
                 #[must_use]

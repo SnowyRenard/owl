@@ -439,15 +439,6 @@ macro_rules! vec4s {
                 pub fn dot(self, other: Self) -> $type {
                     (self.x * other.x) + (self.y * other.y) + (self.z * other.z) + (self.w * other.w)
                 }
-                // #[inline]
-                // #[must_use]
-                // pub fn cross(&self, other: Self) -> Self {
-                //     Self {
-                //         x: self.y * other.z - other.y * self.z,
-                //         y: self.z * other.x - other.z * self.x,
-                //         z: self.x * other.y - other.x * self.y,
-                //     }
-                // }
 
                 #[inline]
                 #[must_use]
