@@ -352,6 +352,9 @@ macro_rules! vec2s {
                 pub const ZERO: Self = Self::splat(0 as $type);
                 pub const ONE: Self = Self::splat(1 as $type);
 
+                #[inline]
+                #[must_use]
+                pub const fn new(x: $type, y: $type) -> Self {
                     Self {x, y}
                 }
 
