@@ -2,6 +2,7 @@
 #![cfg_attr(not(feature = "std"), feature(core_float_math))]
 #![cfg_attr(feature = "f16", feature(f16))]
 #![cfg_attr(feature = "f128", feature(f128))]
+#![cfg_attr(feature = "simd", feature(portable_simd))]
 
 mod angle;
 mod math;

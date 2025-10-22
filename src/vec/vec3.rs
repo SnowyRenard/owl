@@ -6,7 +6,7 @@ pub type Rgb = Vec3;
 pub type Uvw = Vec3;
 pub type Point3 = Vec3;
 
-macro_rules! impl_signed {
+macro_rules! impl_signed_scalar {
     ($(($vec3: ident => $type: ty)),+) => {
         $(
             impl $vec3 {
@@ -15,7 +15,15 @@ macro_rules! impl_signed {
                 pub const NEG_X: Self = Self::new(-1 as $type, 0 as $type, 0 as $type);
                 pub const NEG_Y: Self = Self::new(0 as $type, -1 as $type, 0 as $type);
                 pub const NEG_Z: Self = Self::new(0 as $type, 0 as $type, -1 as $type);
+            }
+        )+
+    };
+}
 
+macro_rules! impl_signed {
+    ($(($vec3: ident => $type: ty)),+) => {
+        $(
+            impl $vec3 {
                 #[inline]
                 #[must_use]
                 pub fn abs(self) -> Self {
@@ -55,16 +63,42 @@ macro_rules! impl_signed {
     };
 }
 
-macro_rules! impl_float {
+macro_rules! impl_float_scalar {
     ($(($vec3: ident => $type: ty)),+) => {
         $(
-            impl_signed!(($vec3 => $type));
+            impl_signed_scalar!(($vec3 => $type));
             impl $vec3 {
                 pub const INFINITY: Self = Self::splat(<$type>::INFINITY);
                 pub const NEG_INFINITY: Self = Self::splat(<$type>::NEG_INFINITY);
 
                 pub const NAN: Self = Self::splat(<$type>::NAN);
 
+                #[inline]
+                #[must_use]
+                pub fn reflect(self, normal: Self) -> Self {
+                    self - 2 as $type * self.dot(normal) * normal
+                }
+                #[inline]
+                #[must_use]
+                pub fn refract(self, normal: Self, eta: $type) -> Self {
+                    let n_dot_i = normal.dot(self);
+                    let k = 1 as $type - eta * eta * (1 as $type - n_dot_i * n_dot_i);
+                    if k >= 0 as $type {
+                        eta * self - (eta * n_dot_i + Math::sqrt(k)) * normal
+                    } else {
+                        Self::ZERO
+                    }
+                }
+            }
+        )+
+    };
+}
+
+macro_rules! impl_float {
+    ($(($vec3: ident => $type: ty)),+) => {
+        $(
+            impl_signed!(($vec3 => $type));
+            impl $vec3 {
                 #[inline]
                 #[must_use]
                 pub fn round(self) -> Self {
@@ -126,23 +160,6 @@ macro_rules! impl_float {
                 #[must_use]
                 pub fn normalize(self) -> Self {
                     self / self.length()
-                }
-
-                #[inline]
-                #[must_use]
-                pub fn reflect(self, normal: Self) -> Self {
-                    self - 2 as $type * self.dot(normal) * normal
-                }
-                #[inline]
-                #[must_use]
-                pub fn refract(self, normal: Self, eta: $type) -> Self {
-                    let n_dot_i = normal.dot(self);
-                    let k = 1 as $type - eta * eta * (1 as $type - n_dot_i * n_dot_i);
-                    if k >= 0 as $type {
-                        eta * self - (eta * n_dot_i + Math::sqrt(k)) * normal
-                    } else {
-                        Self::ZERO
-                    }
                 }
             }
         )+
@@ -348,33 +365,11 @@ macro_rules! impl_op_assign {
     };
 }
 
-macro_rules! vec3s {
-    ($(($name:ident => $type:ty)),+) => {
+macro_rules! vec3s_scalar {
+    ($(($vec3:ident => $type:ty)),+) => {
         $(
-            impl_op!(Add, add, $name, $type);
-            impl_op!(Sub, sub, $name, $type);
-            impl_op!(Mul, mul, $name, $type);
-            impl_op!(Div, div, $name, $type);
-
-            impl_op_assign!(AddAssign, add_assign, $name, $type);
-            impl_op_assign!(SubAssign, sub_assign, $name, $type);
-            impl_op_assign!(MulAssign, mul_assign, $name, $type);
-            impl_op_assign!(DivAssign, div_assign, $name, $type);
-
-            #[cfg(feature = "bytemuck")]
-            unsafe impl bytemuck::Pod for $name {}
-            #[cfg(feature = "bytemuck")]
-            unsafe impl bytemuck::Zeroable for $name {}
-            #[repr(C)]
-            #[derive(Debug, Clone, Copy)]
-            pub struct $name {
-                pub x: $type,
-                pub y: $type,
-                pub z: $type,
-            }
-
-
-            impl $name {
+            vec3s!(($vec3  => $type));
+            impl $vec3 {
                 pub const ZERO: Self = Self::splat(0 as $type);
                 pub const ONE: Self = Self::splat(1 as $type);
 
@@ -384,7 +379,38 @@ macro_rules! vec3s {
 
                 pub const MIN: Self = Self::splat(<$type>::MIN);
                 pub const MAX: Self = Self::splat(<$type>::MAX);
+            }
+        )+
+    };
+}
 
+macro_rules! vec3s {
+    ($(($vec3:ident => $type:ty)),+) => {
+        $(
+            impl_op!(Add, add, $vec3, $type);
+            impl_op!(Sub, sub, $vec3, $type);
+            impl_op!(Mul, mul, $vec3, $type);
+            impl_op!(Div, div, $vec3, $type);
+
+            impl_op_assign!(AddAssign, add_assign, $vec3, $type);
+            impl_op_assign!(SubAssign, sub_assign, $vec3, $type);
+            impl_op_assign!(MulAssign, mul_assign, $vec3, $type);
+            impl_op_assign!(DivAssign, div_assign, $vec3, $type);
+
+            #[cfg(feature = "bytemuck")]
+            unsafe impl bytemuck::Pod for $vec3 {}
+            #[cfg(feature = "bytemuck")]
+            unsafe impl bytemuck::Zeroable for $vec3 {}
+            #[repr(C)]
+            #[derive(Debug, Clone, Copy)]
+            pub struct $vec3 {
+                pub x: $type,
+                pub y: $type,
+                pub z: $type,
+            }
+
+
+            impl $vec3 {
                 #[inline]
                 #[must_use]
                 pub const fn new(x: $type, y: $type, z: $type) -> Self {
@@ -472,7 +498,7 @@ macro_rules! vec3s {
                 }
             }
 
-            impl Index<usize> for $name {
+            impl Index<usize> for $vec3 {
                 type Output = $type;
 
                 #[inline]
@@ -485,7 +511,7 @@ macro_rules! vec3s {
                     }
                 }
             }
-            impl IndexMut<usize> for $name {
+            impl IndexMut<usize> for $vec3 {
                 #[inline]
                 fn index_mut(&mut self, index: usize) -> &mut Self::Output {
                     match index {
@@ -497,20 +523,20 @@ macro_rules! vec3s {
                 }
             }
 
-            impl From<$type> for $name {
+            impl From<$type> for $vec3 {
                 #[inline]
                 fn from(value: $type) -> Self {
                     Self::splat(value)
                 }
             }
-            impl From<&$type> for $name {
+            impl From<&$type> for $vec3 {
                 #[inline]
                 fn from(value: &$type) -> Self {
                     Self::splat(*value)
                 }
             }
 
-            impl From<[$type; 3]> for $name {
+            impl From<[$type; 3]> for $vec3 {
                 #[inline]
                 fn from(value: [$type; 3]) -> Self {
                     Self {
@@ -520,7 +546,7 @@ macro_rules! vec3s {
                     }
                 }
             }
-            impl From<&[$type; 3]> for $name {
+            impl From<&[$type; 3]> for $vec3 {
                 #[inline]
                 fn from(value: &[$type; 3]) -> Self {
                     Self {
@@ -531,7 +557,7 @@ macro_rules! vec3s {
                 }
             }
 
-            impl From<($type, $type, $type)> for $name {
+            impl From<($type, $type, $type)> for $vec3 {
                 #[inline]
                 fn from(value: ($type, $type, $type)) -> Self {
                     Self {
@@ -541,7 +567,7 @@ macro_rules! vec3s {
                     }
                 }
             }
-            impl From<&($type, $type, $type)> for $name {
+            impl From<&($type, $type, $type)> for $vec3 {
                 #[inline]
                 fn from(value: &($type, $type, $type)) -> Self {
                     Self {
@@ -552,15 +578,15 @@ macro_rules! vec3s {
                 }
             }
 
-            impl From<$name> for [$type; 3] {
+            impl From<$vec3> for [$type; 3] {
                 #[inline]
-                fn from(value: $name) -> Self {
+                fn from(value: $vec3) -> Self {
                     [value.x, value.y, value.z]
                 }
             }
-            impl From<&$name> for [$type; 3] {
+            impl From<&$vec3> for [$type; 3] {
                 #[inline]
-                fn from(value: &$name) -> Self {
+                fn from(value: &$vec3) -> Self {
                     [value.x, value.y, value.z]
                 }
             }
@@ -568,16 +594,17 @@ macro_rules! vec3s {
         )+
     };
 }
-vec3s!((Vec3 => f32), (DVec3 => f64));
-impl_float!((Vec3 =>f32), (DVec3=> f64));
 
-vec3s!((I8Vec3 => i8), (U8Vec3 => u8),
+vec3s_scalar!((Vec3 => f32), (DVec3 => f64));
+impl_float_scalar!((Vec3 =>f32), (DVec3=> f64));
+
+vec3s_scalar!((I8Vec3 => i8), (U8Vec3 => u8),
     (I16Vec3 => i16), (U16Vec3 => u16),
     (IVec3 => i32), (UVec3 => u32),
     (I64Vec3 => i64), (U64Vec3 => u64),
     (I128Vec3 => i128), (U128Vec3 => u128),
     (IsizeVec3 => isize), (UsizeVec3 => usize));
-impl_signed!(
+impl_signed_scalar!(
     (I8Vec3 => i8),
     (I16Vec3 => i16),
     (IVec3 => i32),
@@ -587,11 +614,19 @@ impl_signed!(
 );
 
 #[cfg(feature = "f16")]
-vec3s!((F16Vec3 => f16));
+vec3s_scalar!((F16Vec3 => f16));
 #[cfg(feature = "f16")]
-impl_float!((F16Vec3 => f16));
+impl_float_scalar!((F16Vec3 => f16));
 
 #[cfg(feature = "f128")]
-vec3s!((F128Vec3 => f128));
+vec3s_scalar!((F128Vec3 => f128));
 #[cfg(feature = "f128")]
-impl_float!((F128Vec3 => f128));
+impl_float_scalar!((F128Vec3 => f128));
+
+#[cfg(feature = "simd")]
+use core::simd::{num::*, *};
+
+#[cfg(feature = "simd")]
+vec3s!((Vec3x4 => f32x4), (Vec3x8 => f32x8));
+#[cfg(feature = "simd")]
+impl_signed!((Vec3x4 => f32x4), (Vec3x8 => f32x8)); // Math is not yet implemented for Simd<float, n>.
