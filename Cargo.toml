@@ -3,12 +3,13 @@ name = "owl"
 version = "0.1.0"
 edition = "2024"
 
+[workspace]
+resolver = "3"
+
 [dependencies]
 bytemuck = { version = "*", optional = true }
+num-traits = "*"
 
 [features]
 default = [ "std" ]
 std = []
-simd = []
-f16 = [ "bytemuck?/nightly_float" ]
-f128 = [ "bytemuck?/nightly_float" ]
