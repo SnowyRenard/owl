@@ -8,8 +8,9 @@ resolver = "3"
 
 [dependencies]
 bytemuck = { version = "*", optional = true }
-num-traits = "*"
+num-traits = { version = "*", optional = true }
 
 [features]
 default = [ "std" ]
 std = []
+simd = []

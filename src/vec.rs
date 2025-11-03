@@ -193,7 +193,7 @@ macro_rules! impl_vec {
 
         }
 
-        impl<T: Mul<Output = T> + Add<Output = T>+ Copy> $vec<T> {
+        impl<T: Mul<Output = T> + Add<Output = T> + Copy> $vec<T> {
             #[inline]
             pub fn dot(self, rhs: Self) -> T {
                 (self * rhs).element_sum()
@@ -215,7 +215,7 @@ macro_rules! impl_vec {
             }
         }
 
-        impl<T: num_traits::Float> $vec<T> {
+        impl<T: crate::Float + Copy + Add<Output = T> + Mul<Output = T> + Div<Output = T>> $vec<T> {
             #[inline]
             #[must_use]
             pub fn length(self) -> T {
@@ -343,13 +343,16 @@ impl_vec!(Vec2, 2, (x, y), (0, 1), (T, T));
 impl_vec!(Vec3, 3, (x, y, z), (0, 1, 2), (T, T, T));
 impl_vec!(Vec4, 4, (x, y, z, w), (0, 1, 2, 3), (T, T, T, T));
 
-impl Vec3<f32> {
-    pub fn reflect(self, normal: Self) -> Self {
-        self - 2.0 * self.dot(normal) * normal
-    }
-}
-impl<T: num_traits::Float + crate::consts::Zero + crate::consts::One> Vec3<T> {
-    #[inline]
+impl<
+    T: crate::Float
+        + crate::consts::Zero
+        + crate::consts::One
+        + Copy
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Mul<Output = T>,
+> Vec3<T>
+{
     pub fn cross(self, rhs: Self) -> Self {
         Self {
             x: self.y * rhs.z - rhs.y * self.z,
@@ -357,6 +360,10 @@ impl<T: num_traits::Float + crate::consts::Zero + crate::consts::One> Vec3<T> {
             z: self.x * rhs.y - rhs.x * self.y,
         }
     }
+
+    // pub fn reflect(self, normal: Self) -> Self {
+    //     self - normal * T::from(2.0).unwrap() * self.dot(normal)
+    // }
 
     pub fn refract(self, normal: Self, eta: T) -> Self {
         let n_dot_i = normal.dot(self);
@@ -369,6 +376,9 @@ impl<T: num_traits::Float + crate::consts::Zero + crate::consts::One> Vec3<T> {
     }
 }
 
+// ====== //
+// CONSTS //
+// ====== //
 impl<T: crate::consts::One + crate::consts::Zero + Copy> Vec2<T> {
     pub const X: Self = Self::new(T::ONE, T::ZERO);
     pub const Y: Self = Self::new(T::ZERO, T::ONE);
