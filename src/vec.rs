@@ -130,9 +130,9 @@ macro_rules! impl_vec {
         }
 
         #[cfg(feature = "bytemuck")]
-        unsafe impl bytemuck::Zeroable for $vec<T> {}
+        unsafe impl<T: bytemuck::Zeroable> bytemuck::Zeroable for $vec<T> {}
         #[cfg(feature = "bytemuck")]
-        unsafe impl bytemuck::Pod for $vec<T> {}
+        unsafe impl<T: bytemuck::Pod> bytemuck::Pod for $vec<T> {}
 
         impl_ops!($vec, ($($get),+), Add add, Sub sub, Mul mul, Div div, Rem rem);
         impl_assign_ops!($vec, ($($get),+), AddAssign add_assign, SubAssign sub_assign, MulAssign mul_assign, DivAssign div_assign, RemAssign rem_assign);
