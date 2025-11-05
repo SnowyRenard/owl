@@ -1,4 +1,6 @@
-impl<T: num_traits::Float> crate::Float for T {
+use crate::num::prelude::*;
+
+impl<T: num_traits::Float> Float for T {
     #[inline]
     fn sqrt(self) -> Self {
         self.sqrt()
@@ -30,9 +32,9 @@ impl<T: num_traits::Float> crate::Float for T {
     }
 }
 
-impl<T: num_traits::identities::ConstZero> crate::consts::Zero for T {
+impl<T: num_traits::identities::ConstZero> Zero for T {
     const ZERO: Self = T::ZERO;
 }
-impl<T: num_traits::identities::ConstOne> crate::consts::One for T {
+impl<T: num_traits::identities::ConstOne> One for T {
     const ONE: Self = T::ONE;
 }
