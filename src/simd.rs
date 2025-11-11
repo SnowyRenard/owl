@@ -1,6 +1,5 @@
+use crate::num::prelude::*;
 use std::simd::{LaneCount, Simd, SimdElement, SupportedLaneCount};
-
-use crate::consts::{NegOne, One, Zero};
 
 impl<T, const N: usize> Zero for Simd<T, N>
 where

@@ -1,5 +1,11 @@
 use crate::num::prelude::*;
 
+impl<T: num_traits::NumCast, U: num_traits::NumCast> Cast<U> for T {
+    fn cast(n: U) -> Option<Self> {
+        T::from(n)
+    }
+}
+
 impl<T: num_traits::Float> Float for T {
     #[inline]
     fn sqrt(self) -> Self {

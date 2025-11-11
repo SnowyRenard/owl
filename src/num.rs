@@ -1,6 +1,19 @@
 pub(crate) mod prelude {
+    pub use super::Cast;
     pub use super::Float;
     pub use super::consts::*;
+}
+
+pub trait Cast<T>: Sized {
+    fn cast(n: T) -> Option<Self>;
+}
+
+#[cfg(not(feature = "num-traits"))]
+impl<T: From<U>, U> Cast<U> for T {
+    #[inline(always)]
+    fn cast(n: U) -> Option<Self> {
+        Some(n.into())
+    }
 }
 
 pub trait Float: PartialEq + PartialOrd {
@@ -12,16 +25,24 @@ pub trait Float: PartialEq + PartialOrd {
     fn trunc(self) -> Self;
     fn fract(self) -> Self;
 }
+
+#[cfg(not(feature = "num-traits"))]
 macro_rules! derive_float {
     ($($type:ty)+) => {
         $(
             impl Float for $type {
+                #[inline(always)]
                 fn sqrt(self) -> Self { self.sqrt() }
 
+                #[inline(always)]
                 fn floor(self) -> Self { self.floor() }
+                #[inline(always)]
                 fn ceil(self) -> Self { self.ceil() }
+                #[inline(always)]
                 fn round(self) -> Self { self.round() }
+                #[inline(always)]
                 fn trunc(self) -> Self { self.trunc() }
+                #[inline(always)]
                 fn fract(self) -> Self { self.fract() }
             }
         )+
