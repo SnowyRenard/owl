@@ -1,5 +1,5 @@
 use crate::num::prelude::*;
-use std::simd::{LaneCount, Simd, SimdElement, SupportedLaneCount};
+use core::simd::{LaneCount, Simd, SimdElement, SupportedLaneCount};
 
 #[cfg(not(feature = "num-traits"))]
 impl<T, const N: usize> Zero for Simd<T, N>
