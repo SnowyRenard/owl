@@ -9,5 +9,4 @@ mod numtraits;
 #[cfg(feature = "simd")]
 mod simd;
 
-pub use angle::*;
 pub use vec::*;
