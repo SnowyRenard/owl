@@ -1,6 +1,6 @@
 **Owl**
 ---
-Owl is a simple linear algebra library inspired by glam and with the intetion to have explicit core::simd support.
+Owl is a simple linear algebra library inspired by glam and with the intention to have explicit core::simd support.
 
 **Thanks**
 ---
