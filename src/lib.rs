@@ -1,6 +1,5 @@
 #![cfg_attr(feature = "simd", feature(portable_simd))]
 
-mod angle;
 mod num;
 pub mod vec;
 
