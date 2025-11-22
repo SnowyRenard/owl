@@ -353,7 +353,7 @@ impl<T: Copy + Sub<Output = T> + Mul<Output = T>> Vec3<T> {
 
 impl<T: Cast<u8> + Copy + Add<Output = T> + Sub<Output = T> + Mul<Output = T>> Vec3<T> {
     pub fn reflect(self, normal: Self) -> Self {
-        self - normal * T::cast(2).unwrap() * self.dot(normal)
+        self - normal * T::cast(2) * self.dot(normal)
     }
 }
 

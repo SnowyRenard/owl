@@ -5,14 +5,13 @@ pub(crate) mod prelude {
 }
 
 pub trait Cast<T>: Sized {
-    fn cast(n: T) -> Option<Self>;
+    fn cast(n: T) -> Self;
 }
 
-#[cfg(not(feature = "num-traits"))]
 impl<T: From<U>, U> Cast<U> for T {
     #[inline(always)]
-    fn cast(n: U) -> Option<Self> {
-        Some(n.into())
+    fn cast(n: U) -> Self {
+        n.into()
     }
 }
 
