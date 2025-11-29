@@ -135,22 +135,27 @@ macro_rules! impl_vec {
         impl_ops!($vec, ($($get),+), Add add, Sub sub, Mul mul, Div div, Rem rem);
         impl_assign_ops!($vec, ($($get),+), AddAssign add_assign, SubAssign sub_assign, MulAssign mul_assign, DivAssign div_assign, RemAssign rem_assign);
 
-        impl<T: Copy> $vec<T> {
+        impl<T> $vec<T> {
             #[inline(always)]
             pub const fn new($($get: T),+) -> Self {
                 Self { $($get),+ }
             }
+        }
 
+        impl<T: Copy> $vec<T> {
             #[inline(always)]
             pub const fn splat(v: T) -> Self {
                 Self { $($get: v),+ }
             }
 
             #[inline]
-            pub fn map<F: Fn(T) -> T>(self, f: F) -> Self {
-                Self { $($get: f(self.$get)),+}
+            pub fn map<D,F>(self, mut f: F) -> $vec<D> where F: FnMut(T) -> D {
+                $vec::new($(f(self.$get)),+)
             }
 
+            pub const fn to_array(&self) -> [T; $size] {
+                [$(self.$get),+]
+            }
         }
 
 
@@ -213,7 +218,9 @@ macro_rules! impl_vec {
             }
         }
 
-        impl<T: Float + Copy + Add<Output = T> + Mul<Output = T> + Div<Output = T>> $vec<T> {
+        impl<T> $vec<T>
+            where T: Float + Add<Output = T> + Mul<Output = T> + Div<Output = T> + Copy
+        {
             #[inline]
             #[must_use]
             pub fn length(self) -> T {
@@ -288,52 +295,26 @@ macro_rules! impl_vec {
                 Self::splat(value)
             }
         }
-        impl<T: Copy> From<&T> for $vec<T> {
-            #[inline(always)]
-            fn from(value: &T) -> Self {
-                Self::splat(*value)
-            }
-        }
 
         impl<T: Copy> From<[T; $size]> for $vec<T> {
             #[inline(always)]
             fn from(value: [T; $size]) -> Self {
-                Self { $($get: value[$index]),+ }
-            }
-        }
-        impl<T: Copy> From<&[T; $size]> for $vec<T> {
-            #[inline(always)]
-            fn from(value: &[T; $size]) -> Self {
-                Self { $($get: value[$index]),+ }
+                Self::new($(value[$index]),+)
             }
         }
 
         impl<T> From<$tuple> for $vec<T> {
             #[inline(always)]
             fn from(value: $tuple) -> Self {
-                Self { $($get: value.$index),+ }
+                Self::new($(value.$index),+)
             }
         }
-        impl<T: Copy> From<&$tuple> for $vec<T> {
-            #[inline(always)]
-            fn from(value: &$tuple) -> Self {
-                Self { $($get: value.$index),+ }
-            }
-        }
-
         impl<T> From<$vec<T>> for [T; $size] {
             #[inline(always)]
             fn from(value: $vec<T>) -> Self {
                 [$(value.$get),+]
             }
         }
-        impl<T: Copy> From<&$vec<T>> for [T; $size] {
-            #[inline(always)]
-            fn from(value: &$vec<T>) -> Self {
-                [$(value.$get),+]
-            }
-        }
-
     };
 }
 
@@ -372,31 +353,31 @@ impl<T: Float + Zero + One + Copy + Add<Output = T> + Sub<Output = T> + Mul<Outp
 // ====== //
 // CONSTS //
 // ====== //
-impl<T: One + Zero + Copy> Vec2<T> {
+impl<T: One + Zero> Vec2<T> {
     pub const X: Self = Self::new(T::ONE, T::ZERO);
     pub const Y: Self = Self::new(T::ZERO, T::ONE);
 }
-impl<T: NegOne + Zero + Copy> Vec2<T> {
+impl<T: NegOne + Zero> Vec2<T> {
     pub const NEG_X: Self = Self::new(T::NEG_ONE, T::ZERO);
     pub const NEG_Y: Self = Self::new(T::ZERO, T::NEG_ONE);
 }
-impl<T: One + Zero + Copy> Vec3<T> {
+impl<T: One + Zero> Vec3<T> {
     pub const X: Self = Self::new(T::ONE, T::ZERO, T::ZERO);
     pub const Y: Self = Self::new(T::ZERO, T::ONE, T::ZERO);
     pub const Z: Self = Self::new(T::ZERO, T::ZERO, T::ONE);
 }
-impl<T: NegOne + Zero + Copy> Vec3<T> {
+impl<T: NegOne + Zero> Vec3<T> {
     pub const NEG_X: Self = Self::new(T::NEG_ONE, T::ZERO, T::ZERO);
     pub const NEG_Y: Self = Self::new(T::ZERO, T::NEG_ONE, T::ZERO);
     pub const NEG_Z: Self = Self::new(T::ZERO, T::ZERO, T::NEG_ONE);
 }
-impl<T: One + Zero + Copy> Vec4<T> {
+impl<T: One + Zero> Vec4<T> {
     pub const X: Self = Self::new(T::ONE, T::ZERO, T::ZERO, T::ZERO);
     pub const Y: Self = Self::new(T::ZERO, T::ONE, T::ZERO, T::ZERO);
     pub const Z: Self = Self::new(T::ZERO, T::ZERO, T::ONE, T::ZERO);
     pub const W: Self = Self::new(T::ZERO, T::ZERO, T::ZERO, T::ONE);
 }
-impl<T: NegOne + Zero + Copy> Vec4<T> {
+impl<T: NegOne + Zero> Vec4<T> {
     pub const NEG_X: Self = Self::new(T::NEG_ONE, T::ZERO, T::ZERO, T::ZERO);
     pub const NEG_Y: Self = Self::new(T::ZERO, T::NEG_ONE, T::ZERO, T::ZERO);
     pub const NEG_Z: Self = Self::new(T::ZERO, T::ZERO, T::NEG_ONE, T::ZERO);
