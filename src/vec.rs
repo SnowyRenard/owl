@@ -142,6 +142,11 @@ macro_rules! impl_vec {
             pub const fn new($($get: T),+) -> Self {
                 Self { $($get),+ }
             }
+
+            #[inline]
+            pub fn map<D,F>(self, mut f: F) -> $vec<D> where F: FnMut(T) -> D {
+                $vec::new($(f(self.$get)),+)
+            }
         }
 
         impl<T: Copy> $vec<T> {
@@ -150,25 +155,20 @@ macro_rules! impl_vec {
                 Self { $($get: v),+ }
             }
 
-            #[inline]
-            pub fn map<D,F>(self, mut f: F) -> $vec<D> where F: FnMut(T) -> D {
-                $vec::new($(f(self.$get)),+)
-            }
-
             pub const fn to_array(&self) -> [T; $size] {
                 [$(self.$get),+]
             }
         }
 
 
-        impl<T: Zero + Copy> $vec<T> {
-            pub const ZERO: Self = Self::splat(T::ZERO);
+        impl<T: Zero> $vec<T> {
+            pub const ZERO: Self = Self { $($get: T::ZERO),+ };
         }
-        impl<T: One + Copy> $vec<T> {
-            pub const ONE: Self = Self::splat(T::ONE);
+        impl<T: One> $vec<T> {
+            pub const ONE: Self = Self { $($get: T::ONE),+ };
         }
-        impl<T: NegOne + Copy> $vec<T> {
-            pub const NEG_ONE: Self = Self::splat(T::NEG_ONE);
+        impl<T: NegOne> $vec<T> {
+            pub const NEG_ONE: Self = Self { $($get: T::NEG_ONE),+ };
         }
 
         impl<T: PartialOrd> $vec<T> {
