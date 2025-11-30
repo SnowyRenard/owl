@@ -198,7 +198,7 @@ macro_rules! impl_vec {
 
         }
 
-        impl<T: Mul<Output = T> + Add<Output = T> + Copy> $vec<T> {
+        impl<T: Mul<Output = T> + Add<Output = T>> $vec<T> {
             #[inline]
             pub fn dot(self, rhs: Self) -> T {
                 (self * rhs).element_sum()
@@ -214,6 +214,8 @@ macro_rules! impl_vec {
                 reduce_op!(*, $(self.$get),+)
             }
 
+        }
+        impl<T: Mul<Output = T> + Add<Output = T> + Copy> $vec<T> {
             #[inline]
             pub fn length_squared(self) -> T {
                 self.dot(self)
@@ -236,6 +238,9 @@ macro_rules! impl_vec {
             }
 
 
+        }
+
+        impl<T: Float> $vec<T> {
             pub fn floor(self) -> Self {
                 Self { $($get: self.$get.floor()),+ }
             }
@@ -252,16 +257,8 @@ macro_rules! impl_vec {
                 Self { $($get: self.$get.fract()),+ }
             }
         }
-
+        
         impl<T: Neg<Output = T>> Neg for $vec<T> {
-            type Output = $vec<T>;
-
-            #[inline]
-            fn neg(self) -> Self::Output {
-                Self::Output { $($get: -self.$get),+ }
-            }
-        }
-        impl<T: Neg<Output = T> + Copy> Neg for &$vec<T> {
             type Output = $vec<T>;
 
             #[inline]
