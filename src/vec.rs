@@ -17,7 +17,7 @@ macro_rules! impl_ops {
 /// Implements a single operation for a vector.
 macro_rules! impl_op {
     ($vec:ident, ($($get:tt),+), $op:ident $fn:ident) => {
-        impl<T: $op<Output = T> + Copy> $op<$vec<T>> for $vec<T> {
+        impl<T: $op<Output = T>> $op<$vec<T>> for $vec<T> {
             type Output = $vec<T>;
 
             #[inline(always)]
@@ -50,7 +50,7 @@ macro_rules! impl_op {
             }
         }
 
-        impl<T: $op<Output = T>+ Copy> $op<T> for $vec<T> {
+        impl<T: $op<Output = T> + Copy> $op<T> for $vec<T> {
             type Output = $vec<T>;
 
             #[inline(always)]
@@ -92,7 +92,7 @@ macro_rules! impl_assign_ops {
 /// Implements a single assign operation for a vector.
 macro_rules! impl_assign_op {
     ($vec:ident, ($($get:tt),+), $op:ident $fn:ident) => {
-        impl<T: $op + Copy> $op<$vec<T>> for $vec<T> {
+        impl<T: $op> $op<$vec<T>> for $vec<T> {
             #[inline(always)]
             fn $fn(&mut self, rhs: Self) {
                 $(self.$get.$fn(rhs.$get);)+
@@ -122,10 +122,12 @@ macro_rules! impl_assign_op {
 
 macro_rules! impl_vec {
     ($vec:ident, $size:tt, ($($get:tt),+), ($($index:tt),+), $tuple:tt) => {
-        #[derive(Clone, Copy, Debug)]
+        #[derive(Clone, Debug)]
         pub struct $vec<T> {
             $(pub $get: T),+
         }
+
+        impl<T: Copy> Copy for $vec<T> {}
 
         #[cfg(feature = "bytemuck")]
         unsafe impl<T: bytemuck::Zeroable> bytemuck::Zeroable for $vec<T> {}
