@@ -173,24 +173,39 @@ macro_rules! impl_vec {
 
         impl<T: PartialOrd> $vec<T> {
             #[inline]
+            /// Returns a vector containing the minimum values for each element of `self` and `rhs`.
+            ///
+            /// In other words, this computes `[min(self.x, rhs.x), min(self.y, rhs.y), ...]`.
             pub fn min(self, rhs: Self) -> Self {
                 Self { $($get: if self.$get < rhs.$get {self.$get} else {rhs.$get}),+ }
             }
             #[inline]
+            /// Returns a vector containing the maximum values for each element of `self` and `rhs`.
+            ///
+            /// In other words, this computes `[max(self.x, rhs.x), max(self.y, rhs.y), ...]`.
             pub fn max(self, rhs: Self) -> Self {
                 Self { $($get: if self.$get > rhs.$get {self.$get} else {rhs.$get}),+ }
             }
             #[inline]
+            /// Component-wise clamping of values similar to [`f32::clamp`].
+            ///
+            /// Each element in `min` must be less-or-equal to the corresponding element in `max`.
             pub fn clamp(self, min: Self, max: Self) -> Self {
                 self.min(max).max(min)
             }
 
             #[inline]
+            /// Returns the horizontal minimum of `self`.
+            /// 
+            /// In other words, this computes `min(x, y, ...)`.
             pub fn min_element(self) -> T {
                 let min = |a, b| if a < b { a } else { b };
                 reduce_fn!(min, $(self.$get),+)
             }
             #[inline]
+            /// Returns the horizontal maximum of `self`.
+            /// 
+            /// In other words, this computes `max(x, y, ...)`.
             pub fn max_element(self) -> T {
                 let max = |a, b| if a > b { a } else { b };
                 reduce_fn!(max, $(self.$get),+)
@@ -200,16 +215,23 @@ macro_rules! impl_vec {
 
         impl<T: Mul<Output = T> + Add<Output = T>> $vec<T> {
             #[inline]
+            /// Computes the dot product of `self` and `rhs`.
             pub fn dot(self, rhs: Self) -> T {
                 (self * rhs).element_sum()
             }
 
             #[inline]
+            /// Returns the sum of all elements of `self`.
+            ///
+            /// In other words, this computes `self.x + self.y + ...`.
             pub fn element_sum(self) -> T {
                 reduce_op!(+, $(self.$get),+)
             }
 
             #[inline]
+            /// Returns the product of all elements of `self`.
+            ///
+            /// In other words, this computes `self.x * self.y * ...`.
             pub fn element_product(self) -> T {
                 reduce_op!(*, $(self.$get),+)
             }
@@ -322,6 +344,7 @@ impl_vec!(Vec3, 3, (x, y, z), (0, 1, 2), (T, T, T));
 impl_vec!(Vec4, 4, (x, y, z, w), (0, 1, 2, 3), (T, T, T, T));
 
 impl<T: Copy + Sub<Output = T> + Mul<Output = T>> Vec3<T> {
+    /// Computes the cross product of `self` and `rhs`.
     pub fn cross(self, rhs: Self) -> Self {
         Self {
             x: self.y * rhs.z - rhs.y * self.z,
