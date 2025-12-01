@@ -213,13 +213,7 @@ macro_rules! impl_vec {
 
         }
 
-        impl<T: Mul<Output = T> + Add<Output = T>> $vec<T> {
-            #[inline]
-            /// Computes the dot product of `self` and `rhs`.
-            pub fn dot(self, rhs: Self) -> T {
-                (self * rhs).element_sum()
-            }
-
+        impl<T: Add<Output =T>> for $vec<T> {
             #[inline]
             /// Returns the sum of all elements of `self`.
             ///
@@ -227,7 +221,8 @@ macro_rules! impl_vec {
             pub fn element_sum(self) -> T {
                 reduce_op!(+, $(self.$get),+)
             }
-
+        }
+        impl<T: Mul<Output = T>> for $vec<T> {
             #[inline]
             /// Returns the product of all elements of `self`.
             ///
@@ -235,7 +230,14 @@ macro_rules! impl_vec {
             pub fn element_product(self) -> T {
                 reduce_op!(*, $(self.$get),+)
             }
+        }
 
+        impl<T: Mul<Output = T> + Add<Output = T>> $vec<T> {
+            #[inline]
+            /// Computes the dot product of `self` and `rhs`.
+            pub fn dot(self, rhs: Self) -> T {
+                (self * rhs).element_sum()
+            }
         }
         impl<T: Mul<Output = T> + Add<Output = T> + Copy> $vec<T> {
             #[inline]
