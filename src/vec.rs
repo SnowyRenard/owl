@@ -213,7 +213,7 @@ macro_rules! impl_vec {
 
         }
 
-        impl<T: Add<Output =T>> for $vec<T> {
+        impl<T: Add<Output =T>> $vec<T> {
             #[inline]
             /// Returns the sum of all elements of `self`.
             ///
@@ -222,7 +222,7 @@ macro_rules! impl_vec {
                 reduce_op!(+, $(self.$get),+)
             }
         }
-        impl<T: Mul<Output = T>> for $vec<T> {
+        impl<T: Mul<Output = T>> $vec<T> {
             #[inline]
             /// Returns the product of all elements of `self`.
             ///
