@@ -10,147 +10,116 @@ macro_rules! reduce_op {
     ($op:tt, $a:expr, $b:expr, $($v:expr),+) => { reduce_op!($op, reduce_op!($op, $a, $b), $($v),+) };
 }
 
-/// Calls impl_op multiple times with different operations.
-macro_rules! impl_ops {
-    ($vec:ident, $get:tt, $($op:ident $fn:ident),+) => { $(impl_op!($vec, $get, $op $fn);)+ };
-}
 /// Implements a single operation for a vector.
 macro_rules! impl_op {
-    ($vec:ident, ($($get:tt),+), $op:ident $fn:ident) => {
-        impl<T: $op<Output = T>> $op<$vec<T>> for $vec<T> {
-            type Output = $vec<T>;
+    (impl $Op:ident for $Vec:ident { $op:ident } ($($get:tt),+)) => {
+        // NOTE: Reminder that scalars T: Copy also implement Into<$Vec<T>>.
+        impl<V, T> $Op<V> for $Vec<T> where V: Into<$Vec<T>>, T: $Op<T, Output = T> {
+            type Output = $Vec<T>;
 
-            #[inline(always)]
-            fn $fn(self, rhs: $vec<T>) -> Self::Output {
-                Self::Output { $($get: self.$get.$fn(rhs.$get)),+ }
+            #[inline]
+            fn $op(self, rhs: V) -> Self::Output {
+                let rhs = rhs.into();
+                $Vec::new($(self.$get.$op(rhs.$get)),+)
             }
         }
-        impl<T: $op<Output = T> + Copy> $op<&$vec<T>> for $vec<T> {
-            type Output = $vec<T>;
+        impl<'a, T> $Op<&'a $Vec<T>> for $Vec<T> where T: $Op<&'a T, Output = T> {
+            type Output = $Vec<T>;
 
-            #[inline(always)]
-            fn $fn(self, rhs: &$vec<T>) -> Self::Output {
-                Self::Output { $($get: self.$get.$fn(rhs.$get)),+ }
+            #[inline]
+            fn $op(self, rhs: &'a $Vec<T>) -> Self::Output {
+                $Vec::new($(self.$get.$op(&rhs.$get)),+)
             }
         }
-        impl<T: $op<Output = T> + Copy> $op<$vec<T>> for &$vec<T> {
-            type Output = $vec<T>;
+        impl<'a, T> $Op<$Vec<T>> for &'a $Vec<T> where &'a T: $Op<T, Output = T> {
+            type Output = $Vec<T>;
 
-            #[inline(always)]
-            fn $fn(self, rhs: $vec<T>) -> Self::Output {
-                Self::Output { $($get: self.$get.$fn(rhs.$get)),+ }
+            #[inline]
+            fn $op(self, rhs: $Vec<T>) -> Self::Output {
+                $Vec::new($(self.$get.$op(rhs.$get)),+)
             }
         }
-        impl<T: $op<Output = T> + Copy> $op<&$vec<T>> for &$vec<T> {
-            type Output = $vec<T>;
+        impl<'a, 'b, T> $Op<&'a $Vec<T>> for &'b $Vec<T> where &'b T: $Op<&'a T, Output = T> {
+            type Output = $Vec<T>;
 
-            #[inline(always)]
-            fn $fn(self, rhs: &$vec<T>) -> Self::Output {
-                Self::Output { $($get: self.$get.$fn(rhs.$get)),+ }
+            #[inline]
+            fn $op(self, rhs: &'a $Vec<T>) -> Self::Output {
+                Self::Output { $($get: self.$get.$op(&rhs.$get)),+ }
             }
         }
 
-        impl<T: $op<Output = T> + Copy> $op<T> for $vec<T> {
-            type Output = $vec<T>;
+        impl<'a, T> $Op<T> for &'a $Vec<T> where &'a T: $Op<T, Output = T>, T: Copy {
+            type Output = $Vec<T>;
 
-            #[inline(always)]
-            fn $fn(self, rhs: T) -> Self::Output {
-                Self::Output { $($get: self.$get.$fn(rhs)),+ }
+            #[inline]
+            fn $op(self, rhs: T) -> Self::Output {
+                Self::Output { $($get: self.$get.$op(rhs)),+ }
             }
         }
-        impl<T: $op<Output = T> + Copy> $op<&T> for $vec<T> {
-            type Output = $vec<T>;
+        impl<'a, 'b, T> $Op<&'a T> for &'b $Vec<T> where &'b T: $Op<&'a T, Output = T> {
+            type Output = $Vec<T>;
 
-            #[inline(always)]
-            fn $fn(self, rhs: &T) -> Self::Output {
-                Self::Output { $($get: self.$get.$fn(*rhs)),+ }
-            }
-        }
-        impl<T: $op<Output = T> + Copy> $op<T> for &$vec<T> {
-            type Output = $vec<T>;
-
-            #[inline(always)]
-            fn $fn(self, rhs: T) -> Self::Output {
-                Self::Output { $($get: self.$get.$fn(rhs)),+ }
-            }
-        }
-        impl<T: $op<Output = T> + Copy> $op<&T> for &$vec<T> {
-            type Output = $vec<T>;
-
-            #[inline(always)]
-            fn $fn(self, rhs: &T) -> Self::Output {
-                Self::Output { $($get: self.$get.$fn(*rhs)),+ }
+            #[inline]
+            fn $op(self, rhs: &'a T) -> Self::Output {
+                Self::Output { $($get: self.$get.$op(rhs)),+ }
             }
         }
     };
 }
 
-/// Calls impl_assign_op multiple times with different assign operations.
-macro_rules! impl_assign_ops {
-    ($vec:ident, $get:tt, $($op:ident $fn:ident),+) => { $(impl_assign_op!($vec, $get, $op $fn);)+ };
-}
 /// Implements a single assign operation for a vector.
 macro_rules! impl_assign_op {
-    ($vec:ident, ($($get:tt),+), $op:ident $fn:ident) => {
-        impl<T: $op> $op<$vec<T>> for $vec<T> {
-            #[inline(always)]
-            fn $fn(&mut self, rhs: Self) {
-                $(self.$get.$fn(rhs.$get);)+
-            }
-        }
-        impl<T: $op + Copy> $op<&$vec<T>> for $vec<T> {
-            #[inline(always)]
-            fn $fn(&mut self, rhs: &Self) {
-                $(self.$get.$fn(rhs.$get);)+
-            }
-        }
-
-        impl<T: $op + Copy> $op<T> for $vec<T> {
-            #[inline(always)]
-            fn $fn(&mut self, rhs: T)  {
-                $(self.$get.$fn(rhs);)+
-            }
-        }
-        impl<T: $op + Copy> $op<&T> for $vec<T> {
-            #[inline(always)]
-            fn $fn(&mut self, rhs: &T)  {
-                $(self.$get.$fn(*rhs);)+
+    (impl $Op:ident for $Vec:ident { $op:ident } ($($get:tt),+)) => {
+        // NOTE: Reminder that scalars T: Copy also implement Into<$Vec<T>>.
+        impl<V, T> $Op<V> for $Vec<T> where V: Into<$Vec<T>>, T: $Op<T> {
+            #[inline]
+            fn $op(&mut self, rhs: V) {
+                let rhs = rhs.into();
+                $(self.$get.$op(rhs.$get);)+
             }
         }
     };
 }
 
 macro_rules! impl_vec {
-    ($vec:ident, $size:tt, ($($get:tt),+), ($($index:tt),+), $tuple:tt) => {
+    ($Vec:ident, $size:tt, ($($get:tt),+), ($($index:tt),+), $tuple:tt) => {
         #[derive(Clone, Debug)]
-        pub struct $vec<T> {
+        pub struct $Vec<T> {
             $(pub $get: T),+
         }
 
-        impl<T: Copy> Copy for $vec<T> {}
+        impl<T: Copy> Copy for $Vec<T> {}
 
         #[cfg(feature = "bytemuck")]
-        unsafe impl<T: bytemuck::Zeroable> bytemuck::Zeroable for $vec<T> {}
+        unsafe impl<T: bytemuck::Zeroable> bytemuck::Zeroable for $Vec<T> {}
         #[cfg(feature = "bytemuck")]
-        unsafe impl<T: bytemuck::Pod> bytemuck::Pod for $vec<T> {}
+        unsafe impl<T: bytemuck::Pod> bytemuck::Pod for $Vec<T> {}
 
-        impl_ops!($vec, ($($get),+), Add add, Sub sub, Mul mul, Div div, Rem rem);
-        impl_assign_ops!($vec, ($($get),+), AddAssign add_assign, SubAssign sub_assign, MulAssign mul_assign, DivAssign div_assign, RemAssign rem_assign);
+        impl_op!(impl Add for $Vec { add } ($($get),+));
+        impl_op!(impl Sub for $Vec { sub } ($($get),+));
+        impl_op!(impl Mul for $Vec { mul } ($($get),+));
+        impl_op!(impl Div for $Vec { div } ($($get),+));
+        impl_op!(impl Rem for $Vec { rem } ($($get),+));
+        impl_assign_op!(impl AddAssign for $Vec { add_assign } ($($get),+));
+        impl_assign_op!(impl SubAssign for $Vec { sub_assign } ($($get),+));
+        impl_assign_op!(impl MulAssign for $Vec { mul_assign } ($($get),+));
+        impl_assign_op!(impl DivAssign for $Vec { div_assign } ($($get),+));
+        impl_assign_op!(impl RemAssign for $Vec { rem_assign } ($($get),+));
 
-        impl<T> $vec<T> {
-            #[inline(always)]
+        impl<T> $Vec<T> {
+            #[inline]
             pub const fn new($($get: T),+) -> Self {
                 Self { $($get),+ }
             }
 
             #[inline]
-            pub fn map<D,F>(self, mut f: F) -> $vec<D> where F: FnMut(T) -> D {
-                $vec::new($(f(self.$get)),+)
+            pub fn map<D,F>(self, mut f: F) -> $Vec<D> where F: FnMut(T) -> D {
+                $Vec::new($(f(self.$get)),+)
             }
         }
 
-        impl<T: Copy> $vec<T> {
-            #[inline(always)]
+        impl<T: Copy> $Vec<T> {
+            #[inline]
             pub const fn splat(v: T) -> Self {
                 Self { $($get: v),+ }
             }
@@ -161,17 +130,17 @@ macro_rules! impl_vec {
         }
 
 
-        impl<T: Zero> $vec<T> {
+        impl<T: Zero> $Vec<T> {
             pub const ZERO: Self = Self { $($get: T::ZERO),+ };
         }
-        impl<T: One> $vec<T> {
+        impl<T: One> $Vec<T> {
             pub const ONE: Self = Self { $($get: T::ONE),+ };
         }
-        impl<T: NegOne> $vec<T> {
+        impl<T: NegOne> $Vec<T> {
             pub const NEG_ONE: Self = Self { $($get: T::NEG_ONE),+ };
         }
 
-        impl<T: PartialOrd> $vec<T> {
+        impl<T: PartialOrd> $Vec<T> {
             #[inline]
             /// Returns a vector containing the minimum values for each element of `self` and `rhs`.
             ///
@@ -213,7 +182,7 @@ macro_rules! impl_vec {
 
         }
 
-        impl<T: Add<Output =T>> $vec<T> {
+        impl<T: Add<Output =T>> $Vec<T> {
             #[inline]
             /// Returns the sum of all elements of `self`.
             ///
@@ -222,7 +191,7 @@ macro_rules! impl_vec {
                 reduce_op!(+, $(self.$get),+)
             }
         }
-        impl<T: Mul<Output = T>> $vec<T> {
+        impl<T: Mul<Output = T>> $Vec<T> {
             #[inline]
             /// Returns the product of all elements of `self`.
             ///
@@ -232,21 +201,21 @@ macro_rules! impl_vec {
             }
         }
 
-        impl<T: Mul<Output = T> + Add<Output = T>> $vec<T> {
+        impl<T: Mul<Output = T> + Add<Output = T>> $Vec<T> {
             #[inline]
             /// Computes the dot product of `self` and `rhs`.
             pub fn dot(self, rhs: Self) -> T {
                 (self * rhs).element_sum()
             }
         }
-        impl<T: Mul<Output = T> + Add<Output = T> + Copy> $vec<T> {
+        impl<T: Mul<Output = T> + Add<Output = T> + Copy> $Vec<T> {
             #[inline]
             pub fn length_squared(self) -> T {
                 self.dot(self)
             }
         }
 
-        impl<T> $vec<T>
+        impl<T> $Vec<T>
             where T: Float + Add<Output = T> + Mul<Output = T> + Div<Output = T> + Copy
         {
             #[inline]
@@ -264,7 +233,7 @@ macro_rules! impl_vec {
 
         }
 
-        impl<T: Float> $vec<T> {
+        impl<T: Float> $Vec<T> {
             pub fn floor(self) -> Self {
                 Self { $($get: self.$get.floor()),+ }
             }
@@ -282,8 +251,8 @@ macro_rules! impl_vec {
             }
         }
         
-        impl<T: Neg<Output = T>> Neg for $vec<T> {
-            type Output = $vec<T>;
+        impl<T: Neg<Output = T>> Neg for $Vec<T> {
+            type Output = $Vec<T>;
 
             #[inline]
             fn neg(self) -> Self::Output {
@@ -291,7 +260,7 @@ macro_rules! impl_vec {
             }
         }
 
-        impl<T> Index<usize> for $vec<T> {
+        impl<T> Index<usize> for $Vec<T> {
             type Output = T;
 
             #[inline]
@@ -302,7 +271,7 @@ macro_rules! impl_vec {
                 }
             }
         }
-        impl<T> IndexMut<usize> for $vec<T> {
+        impl<T> IndexMut<usize> for $Vec<T> {
             #[inline]
             fn index_mut(&mut self, index: usize) -> &mut Self::Output {
                 match index {
@@ -312,29 +281,29 @@ macro_rules! impl_vec {
             }
         }
 
-        impl<T: Copy> From<T> for $vec<T> {
-            #[inline(always)]
+        impl<T: Copy> From<T> for $Vec<T> {
+            #[inline]
             fn from(value: T) -> Self {
                 Self::splat(value)
             }
         }
 
-        impl<T: Copy> From<[T; $size]> for $vec<T> {
-            #[inline(always)]
+        impl<T: Copy> From<[T; $size]> for $Vec<T> {
+            #[inline]
             fn from(value: [T; $size]) -> Self {
                 Self::new($(value[$index]),+)
             }
         }
 
-        impl<T> From<$tuple> for $vec<T> {
-            #[inline(always)]
+        impl<T> From<$tuple> for $Vec<T> {
+            #[inline]
             fn from(value: $tuple) -> Self {
                 Self::new($(value.$index),+)
             }
         }
-        impl<T> From<$vec<T>> for [T; $size] {
-            #[inline(always)]
-            fn from(value: $vec<T>) -> Self {
+        impl<T> From<$Vec<T>> for [T; $size] {
+            #[inline]
+            fn from(value: $Vec<T>) -> Self {
                 [$(value.$get),+]
             }
         }
@@ -409,40 +378,40 @@ impl<T: NegOne + Zero> Vec4<T> {
 }
 
 macro_rules! impl_prim_ops {
-    ($vec:ident<$type:ident>, $get:tt, $($op:ident $fn:ident),+) => { $(impl_prim_op!($vec<$type>, $get, $op $fn);)+ };
+    ($Vec:ident<$type:ident>, $get:tt, $($Op:ident $op:ident),+) => { $(impl_prim_op!($Vec<$type>, $get, $Op $op);)+ };
 }
 macro_rules! impl_prim_op {
-    ($vec:ident<$type:ident>, ($($get:tt),+), $op:ident $fn:ident) => {
-        impl $op<$vec<$type>> for $type {
-            type Output = $vec<$type>;
+    ($Vec:ident<$type:ident>, ($($get:tt),+), $Op:ident $op:ident) => {
+        impl $Op<$Vec<$type>> for $type {
+            type Output = $Vec<$type>;
 
-            #[inline(always)]
-            fn $fn(self, rhs: $vec<$type>) -> Self::Output {
-                Self::Output { $($get: self.$fn(rhs.$get)),+ }
+            #[inline]
+            fn $op(self, rhs: $Vec<$type>) -> Self::Output {
+                Self::Output { $($get: self.$op(rhs.$get)),+ }
             }
         }
-        impl $op<&$vec<$type>> for $type {
-            type Output = $vec<$type>;
+        impl $Op<&$Vec<$type>> for $type {
+            type Output = $Vec<$type>;
 
-            #[inline(always)]
-            fn $fn(self, rhs: &$vec<$type>) -> Self::Output {
-                Self::Output { $($get: self.$fn(rhs.$get)),+ }
+            #[inline]
+            fn $op(self, rhs: &$Vec<$type>) -> Self::Output {
+                Self::Output { $($get: self.$op(rhs.$get)),+ }
             }
         }
-        impl $op<$vec<$type>> for &$type {
-            type Output = $vec<$type>;
+        impl $Op<$Vec<$type>> for &$type {
+            type Output = $Vec<$type>;
 
-            #[inline(always)]
-            fn $fn(self, rhs: $vec<$type>) -> Self::Output {
-                Self::Output { $($get: self.$fn(rhs.$get)),+ }
+            #[inline]
+            fn $op(self, rhs: $Vec<$type>) -> Self::Output {
+                Self::Output { $($get: self.$op(rhs.$get)),+ }
             }
         }
-        impl $op<&$vec<$type>> for &$type {
-            type Output = $vec<$type>;
+        impl $Op<&$Vec<$type>> for &$type {
+            type Output = $Vec<$type>;
 
-            #[inline(always)]
-            fn $fn(self, rhs: &$vec<$type>) -> Self::Output {
-                Self::Output { $($get: self.$fn(rhs.$get)),+ }
+            #[inline]
+            fn $op(self, rhs: &$Vec<$type>) -> Self::Output {
+                Self::Output { $($get: self.$op(rhs.$get)),+ }
             }
         }
     };
@@ -454,9 +423,9 @@ macro_rules! impl_prim {
         impl_prim!(Vec3, (x, y, z), $($type)+);
         impl_prim!(Vec4, (x, y, z, w), $($type)+);
     };
-    ($vec:ident, $get:tt, $($type:ident)+) => {
+    ($Vec:ident, $get:tt, $($type:ident)+) => {
         $(
-            impl_prim_ops!($vec<$type>, $get, Add add, Sub sub, Mul mul, Div div, Rem rem);
+            impl_prim_ops!($Vec<$type>, $get, Add add, Sub sub, Mul mul, Div div, Rem rem);
         )+
     };
 }
