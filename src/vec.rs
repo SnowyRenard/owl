@@ -431,3 +431,16 @@ macro_rules! impl_prim {
 }
 
 impl_prim!(usize u8 u16 u32 u64 u128 isize i8 i16 i32 i64 i128 f32 f64);
+
+#[macro_export]
+macro_rules! swizzle {
+    ($vec: expr, ($a: ident $b: ident $c: ident $d: ident) => $ret: ty) => {
+        (<$ret>::new($vec.$a, $vec.$b, $vec.$c, $vec.$d))
+    };
+    ($vec: expr, ($a: ident $b: ident $c: ident) => $ret: ty) => {
+        (<$ret>::new($vec.$a, $vec.$b, $vec.$c))
+    };
+    ($vec: expr, ($a: ident $b: ident) => $ret: ty) => {
+        (<$ret>::new($vec.$a, $vec.$b))
+    };
+}
