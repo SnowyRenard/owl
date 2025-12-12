@@ -88,6 +88,7 @@ macro_rules! impl_vec {
             $(pub $get: T),+
         }
 
+
         impl<T: Copy> Copy for $Vec<T> {}
 
         #[cfg(feature = "bytemuck")]
@@ -111,24 +112,77 @@ macro_rules! impl_vec {
             pub const fn new($($get: T),+) -> Self {
                 Self { $($get),+ }
             }
+            #[inline]
+            pub const fn splat(v: T) -> Self where T: Copy {
+                Self { $($get: v),+ }
+            }
 
+            /// Constant representing the number of elements for this vector type.
+            pub const ELEM_COUNT:usize = $size;
+
+            /// Converts this into a tuple with the same number of elements by consuming.
+            pub fn into_tuple(self) -> $tuple {
+                ($(self.$get),+)
+            }
+            /// Converts this into a fixed-size array.
+            pub fn into_array(self) -> [T; $size] {
+                [$(self.$get),+]
+            }
+
+            /// Returns a member wise-converted copy of this vector, using the given conversion
+            /// closure.
+            ///
+            /// ```
+            /// # use owl::Vec4;
+            /// let v = Vec4::new(0_f32, 1., 1.8, 3.14);
+            /// let i = v.map(|x| x.round() as i32);
+            /// assert_eq!(i, Vec4::new(0, 1, 2, 3));
+            /// ```
             #[inline]
             pub fn map<D,F>(self, mut f: F) -> $Vec<D> where F: FnMut(T) -> D {
                 $Vec::new($(f(self.$get)),+)
             }
-        }
 
-        impl<T: Copy> $Vec<T> {
+            /// Applies the function f to each element of this vector, in-place.
+            ///
+            /// ```
+            /// # use owl::Vec4;
+            /// let mut v = Vec4::new(0_u32, 1, 2, 3);
+            /// v.apply(|x| x.count_ones());
+            /// assert_eq!(v, Vec4::new(0, 1, 1, 2));
+            /// ```
             #[inline]
-            pub const fn splat(v: T) -> Self {
-                Self { $($get: v),+ }
+            pub fn apply<F>(&mut self, mut f: F) where T: Copy, F: FnMut(T) -> T {
+                $(self.$get = f(self.$get);)+
             }
 
-            pub const fn to_array(&self) -> [T; $size] {
-                [$(self.$get),+]
+            /// Returns the sum of all elements of `self`.
+            ///
+            /// In other words, this computes `self.x + self.y + ...`.
+            #[inline]
+            pub fn element_sum(self) -> T where T: Add<Output = T> {
+                reduce_op!(+, $(self.$get),+)
+            }
+            /// Returns the product of all elements of `self`.
+            ///
+            /// In other words, this computes `self.x * self.y * ...`.
+            #[inline]
+            pub fn element_product(self) -> T where T: Mul<Output = T> {
+                reduce_op!(*, $(self.$get),+)
+            }
+
+            /// Computes the dot product of `self` and `rhs`.
+            #[inline]
+            pub fn dot(self, rhs: Self) -> T where T: Add<Output = T> + Mul<Output = T> {
+                (self * rhs).element_sum()
+            }
+            /// The squared length of a vector in its spatial length.
+            /// It is slightly cheaper to compute then `length` because it avoids a square root.
+            #[inline]
+            pub fn length_squared(self) -> T where T: Add<Output = T> + Mul<Output = T> + Copy {
+                self.dot(self)
             }
         }
-
 
         impl<T: Zero> $Vec<T> {
             pub const ZERO: Self = Self { $($get: T::ZERO),+ };
@@ -141,40 +195,40 @@ macro_rules! impl_vec {
         }
 
         impl<T: PartialOrd> $Vec<T> {
-            #[inline]
             /// Returns a vector containing the minimum values for each element of `self` and `rhs`.
             ///
             /// In other words, this computes `[min(self.x, rhs.x), min(self.y, rhs.y), ...]`.
+            #[inline]
             pub fn min(self, rhs: Self) -> Self {
                 Self { $($get: if self.$get < rhs.$get {self.$get} else {rhs.$get}),+ }
             }
-            #[inline]
             /// Returns a vector containing the maximum values for each element of `self` and `rhs`.
             ///
             /// In other words, this computes `[max(self.x, rhs.x), max(self.y, rhs.y), ...]`.
+            #[inline]
             pub fn max(self, rhs: Self) -> Self {
                 Self { $($get: if self.$get > rhs.$get {self.$get} else {rhs.$get}),+ }
             }
-            #[inline]
             /// Component-wise clamping of values similar to [`f32::clamp`].
             ///
             /// Each element in `min` must be less-or-equal to the corresponding element in `max`.
+            #[inline]
             pub fn clamp(self, min: Self, max: Self) -> Self {
                 self.min(max).max(min)
             }
 
-            #[inline]
             /// Returns the horizontal minimum of `self`.
-            /// 
+            ///
             /// In other words, this computes `min(x, y, ...)`.
+            #[inline]
             pub fn min_element(self) -> T {
                 let min = |a, b| if a < b { a } else { b };
                 reduce_fn!(min, $(self.$get),+)
             }
-            #[inline]
             /// Returns the horizontal maximum of `self`.
-            /// 
+            ///
             /// In other words, this computes `max(x, y, ...)`.
+            #[inline]
             pub fn max_element(self) -> T {
                 let max = |a, b| if a > b { a } else { b };
                 reduce_fn!(max, $(self.$get),+)
@@ -182,38 +236,6 @@ macro_rules! impl_vec {
 
         }
 
-        impl<T: Add<Output =T>> $Vec<T> {
-            #[inline]
-            /// Returns the sum of all elements of `self`.
-            ///
-            /// In other words, this computes `self.x + self.y + ...`.
-            pub fn element_sum(self) -> T {
-                reduce_op!(+, $(self.$get),+)
-            }
-        }
-        impl<T: Mul<Output = T>> $Vec<T> {
-            #[inline]
-            /// Returns the product of all elements of `self`.
-            ///
-            /// In other words, this computes `self.x * self.y * ...`.
-            pub fn element_product(self) -> T {
-                reduce_op!(*, $(self.$get),+)
-            }
-        }
-
-        impl<T: Mul<Output = T> + Add<Output = T>> $Vec<T> {
-            #[inline]
-            /// Computes the dot product of `self` and `rhs`.
-            pub fn dot(self, rhs: Self) -> T {
-                (self * rhs).element_sum()
-            }
-        }
-        impl<T: Mul<Output = T> + Add<Output = T> + Copy> $Vec<T> {
-            #[inline]
-            pub fn length_squared(self) -> T {
-                self.dot(self)
-            }
-        }
 
         impl<T> $Vec<T>
             where T: Float + Add<Output = T> + Mul<Output = T> + Div<Output = T> + Copy
@@ -294,17 +316,23 @@ macro_rules! impl_vec {
                 Self::new($(value[$index]),+)
             }
         }
-
         impl<T> From<$tuple> for $Vec<T> {
             #[inline]
             fn from(value: $tuple) -> Self {
                 Self::new($(value.$index),+)
             }
         }
+
         impl<T> From<$Vec<T>> for [T; $size] {
             #[inline]
             fn from(value: $Vec<T>) -> Self {
-                [$(value.$get),+]
+                value.into_array()
+            }
+        }
+        impl<T> From<$Vec<T>> for $tuple {
+            #[inline]
+            fn from(value: $Vec<T>) -> Self {
+                value.into_tuple()
             }
         }
     };
