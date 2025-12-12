@@ -1,5 +1,6 @@
 use crate::num::prelude::*;
 
+#[cfg(feature = "std")]
 impl<T: num_traits::Float> Float for T {
     #[inline]
     fn sqrt(self) -> Self {

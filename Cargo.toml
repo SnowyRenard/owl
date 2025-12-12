@@ -7,10 +7,10 @@ edition = "2024"
 resolver = "3"
 
 [dependencies]
-bytemuck = { version = "*", optional = true }
-num-traits = { version = "*", optional = true }
+bytemuck = { version = "*", default-features = false, optional = true }
+num-traits = { version = "*", default-features = false, optional = true }
 
 [features]
 default = [ "std" ]
-std = []
-simd = []
+std = [ "num-traits/std" ]
+simd = [ "bytemuck/nightly_portable_simd" ]
