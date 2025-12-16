@@ -83,13 +83,14 @@ macro_rules! impl_assign_op {
 
 macro_rules! impl_vec {
     ($Vec:ident, $size:tt, ($($get:tt),+), ($($index:tt),+), $tuple:tt) => {
-        #[derive(Clone, Debug)]
+        #[derive(Debug, Default, Clone, Hash, PartialEq)]
         pub struct $Vec<T> {
             $(pub $get: T),+
         }
 
-
         impl<T: Copy> Copy for $Vec<T> {}
+
+        impl<T: Eq> Eq for $Vec<T> {}
 
         #[cfg(feature = "bytemuck")]
         unsafe impl<T: bytemuck::Zeroable> bytemuck::Zeroable for $Vec<T> {}
@@ -272,7 +273,7 @@ macro_rules! impl_vec {
                 Self { $($get: self.$get.fract()),+ }
             }
         }
-        
+
         impl<T: Neg<Output = T>> Neg for $Vec<T> {
             type Output = $Vec<T>;
 
@@ -462,13 +463,63 @@ impl_prim!(usize u8 u16 u32 u64 u128 isize i8 i16 i32 i64 i128 f32 f64);
 
 #[macro_export]
 macro_rules! swizzle {
-    ($vec: expr, ($a: ident $b: ident $c: ident $d: ident) => $ret: ty) => {
-        (<$ret>::new($vec.$a, $vec.$b, $vec.$c, $vec.$d))
+    ($Vec:expr => $($get:tt),+ => $Ret:ty) => {
+        <$Ret>::new($($Vec.$get),+)
     };
-    ($vec: expr, ($a: ident $b: ident $c: ident) => $ret: ty) => {
-        (<$ret>::new($vec.$a, $vec.$b, $vec.$c))
-    };
-    ($vec: expr, ($a: ident $b: ident) => $ret: ty) => {
-        (<$ret>::new($vec.$a, $vec.$b))
-    };
+}
+
+#[cfg(test)]
+mod swizzle_test {
+    use super::*;
+
+    // Self Swizzle
+    #[test]
+    fn vec2_swizzle() {
+        let result = swizzle!(Vec2::new(1,2) => y,x => Vec2<i32>);
+        assert_eq!(result, Vec2::new(2, 1));
+    }
+    #[test]
+    fn vec3_swizzle() {
+        let result = swizzle!(Vec3::new(1,2,3) => z,y,x => Vec3<i32>);
+        assert_eq!(result, Vec3::new(3, 2, 1));
+    }
+    #[test]
+    fn vec4_swizzle() {
+        let result = swizzle!(Vec4::new(1,2,3,4) => w,z,y,x => Vec4<i32>);
+        assert_eq!(result, Vec4::new(4, 3, 2, 1));
+    }
+
+    // Up Swizzle
+    #[test]
+    fn vec2_up_swizzle() {
+        let result = swizzle!(Vec2::new(1,2) => x,y,x => Vec3<i32>);
+        assert_eq!(result, Vec3::new(1, 2, 1))
+    }
+    #[test]
+    fn vec3_up_swizzle() {
+        let result = swizzle!(Vec3::new(1,2,3) => x,y,z,x => Vec4<i32>);
+        assert_eq!(result, Vec4::new(1, 2, 3, 1))
+    }
+    #[test]
+    fn full_up_swizzle() {
+        let result = swizzle!(Vec2::new(1, 2) => x,y,x,y => Vec4<i32>);
+        assert_eq!(result, Vec4::new(1, 2, 1, 2));
+    }
+
+    // Down Swizzle
+    #[test]
+    fn vec3_down_swizzle() {
+        let result = swizzle!(Vec3::new(1, 2, 3) => x,y => Vec2<i32>);
+        assert_eq!(result, Vec2::new(1, 2))
+    }
+    #[test]
+    fn vec4_down_swizzle() {
+        let result = swizzle!(Vec4::new(1, 2, 3, 4) => x,y,z => Vec3<i32>);
+        assert_eq!(result, Vec3::new(1, 2, 3))
+    }
+    #[test]
+    fn full_down_swizzle() {
+        let result = swizzle!(Vec4::new(1, 2, 3, 4) => x,y => Vec2<i32>);
+        assert_eq!(result, Vec2::new(1, 2))
+    }
 }
