@@ -1,11 +1,6 @@
 pub(crate) mod prelude {
-    pub use super::Cast;
     pub use super::Float;
     pub use super::consts::*;
-}
-
-pub trait Cast<T>: Sized {
-    fn cast(n: T) -> Self;
 }
 
 pub trait Float: PartialEq + PartialOrd {
