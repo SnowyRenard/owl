@@ -1,5 +1,7 @@
 use crate::num::prelude::*;
+use core::borrow::*;
 use core::ops::*;
+use core::slice;
 
 macro_rules! reduce_fn {
     ($fn:expr, $a:expr, $b:expr) => { $fn($a, $b) };
@@ -97,6 +99,16 @@ macro_rules! impl_vec {
         #[cfg(feature = "bytemuck")]
         unsafe impl<T: bytemuck::Pod> bytemuck::Pod for $Vec<T> {}
 
+        impl<T: Zero> $Vec<T> {
+            pub const ZERO: Self = Self { $($get: T::ZERO),+ };
+        }
+        impl<T: One> $Vec<T> {
+            pub const ONE: Self = Self { $($get: T::ONE),+ };
+        }
+        impl<T: NegOne> $Vec<T> {
+            pub const NEG_ONE: Self = Self { $($get: T::NEG_ONE),+ };
+        }
+
         impl_op!(impl Add for $Vec { add } ($($get),+));
         impl_op!(impl Sub for $Vec { sub } ($($get),+));
         impl_op!(impl Mul for $Vec { mul } ($($get),+));
@@ -107,6 +119,75 @@ macro_rules! impl_vec {
         impl_assign_op!(impl MulAssign for $Vec { mul_assign } ($($get),+));
         impl_assign_op!(impl DivAssign for $Vec { div_assign } ($($get),+));
         impl_assign_op!(impl RemAssign for $Vec { rem_assign } ($($get),+));
+
+        impl<T> AsRef<[T]> for $Vec<T> {
+            #[inline]
+            fn as_ref(&self) -> &[T] {
+                self.as_slice()
+            }
+        }
+        impl<T> AsMut<[T]> for $Vec<T> {
+            #[inline]
+            fn as_mut(&mut self) -> &mut [T] {
+                self.as_mut_slice()
+            }
+        }
+        impl<T> Borrow<[T]> for $Vec<T> {
+            #[inline]
+            fn borrow(&self) -> &[T] {
+                self.as_slice()
+            }
+        }
+        impl<T> BorrowMut<[T]> for $Vec<T> {
+            #[inline]
+            fn borrow_mut(&mut self) -> &mut [T] {
+                self.as_mut_slice()
+            }
+        }
+
+        impl<T> AsRef<$Vec<T>> for $Vec<T> {
+            fn as_ref(&self) -> &Self {
+                self
+            }
+        }
+        impl<T> AsMut<$Vec<T>> for $Vec<T> {
+            fn as_mut(&mut self) -> &mut Self {
+                self
+            }
+        }
+
+        impl<'a, T> IntoIterator for &'a $Vec<T> {
+            type Item = &'a T;
+            type IntoIter = slice::Iter<'a, T>;
+            #[inline]
+            fn into_iter(self) -> Self::IntoIter {
+                // NOTE: DO NOT return self.iter() here as it causes infinite recursion.
+                self.as_slice().iter()
+            }
+        }
+        impl<'a, T> IntoIterator for &'a mut $Vec<T> {
+            type Item = &'a mut T;
+            type IntoIter = slice::IterMut<'a, T>;
+            #[inline]
+            fn into_iter(self) -> Self::IntoIter {
+                // NOTE: DO NOT return self.iter_mut() here as it causes infinite recursion.
+                self.as_mut_slice().iter_mut()
+            }
+        }
+
+        impl<T> Deref for $Vec<T> {
+            type Target = [T];
+            #[inline]
+            fn deref(&self) -> &[T] {
+                self.as_slice()
+            }
+        }
+        impl<T> DerefMut for $Vec<T> {
+            #[inline]
+            fn deref_mut(&mut self) -> &mut [T] {
+                self.as_mut_slice()
+            }
+        }
 
         impl<T> $Vec<T> {
             #[inline]
@@ -128,6 +209,34 @@ macro_rules! impl_vec {
             /// Converts this into a fixed-size array.
             pub fn into_array(self) -> [T; $size] {
                 [$(self.$get),+]
+            }
+
+            /// Converts this into a raw pointer of read-only data.
+            #[inline]
+            fn as_ptr_priv(&self) -> *const T {
+                self as *const _ as *const T
+            }
+
+            /// Converts this into a raw pointer.
+            #[inline]
+            fn as_mut_ptr_priv(&mut self) -> *mut T {
+                self as *mut _ as *mut T
+            }
+
+            /// View this vector as an immutable slice.
+            #[inline]
+            pub fn as_slice(&self) -> &[T] {
+                unsafe {
+                    slice::from_raw_parts(self.as_ptr_priv(), $size)
+                }
+            }
+
+            /// View this vector as a mutable slice.
+            #[inline]
+            pub fn as_mut_slice(&mut self) -> &mut [T] {
+                unsafe {
+                    slice::from_raw_parts_mut(self.as_mut_ptr_priv(), $size)
+                }
             }
 
             /// Returns a member wise-converted copy of this vector, using the given conversion
@@ -183,16 +292,6 @@ macro_rules! impl_vec {
             pub fn length_squared(self) -> T where T: Add<Output = T> + Mul<Output = T> + Copy {
                 self.dot(self)
             }
-        }
-
-        impl<T: Zero> $Vec<T> {
-            pub const ZERO: Self = Self { $($get: T::ZERO),+ };
-        }
-        impl<T: One> $Vec<T> {
-            pub const ONE: Self = Self { $($get: T::ONE),+ };
-        }
-        impl<T: NegOne> $Vec<T> {
-            pub const NEG_ONE: Self = Self { $($get: T::NEG_ONE),+ };
         }
 
         impl<T: PartialOrd> $Vec<T> {
