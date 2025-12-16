@@ -8,13 +8,6 @@ pub trait Cast<T>: Sized {
     fn cast(n: T) -> Self;
 }
 
-impl<T: From<U>, U> Cast<U> for T {
-    #[inline(always)]
-    fn cast(n: U) -> Self {
-        n.into()
-    }
-}
-
 pub trait Float: PartialEq + PartialOrd {
     fn sqrt(self) -> Self;
 
