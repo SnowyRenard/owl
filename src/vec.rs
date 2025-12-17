@@ -108,6 +108,10 @@ macro_rules! impl_vec {
         impl<T: NegOne> $Vec<T> {
             pub const NEG_ONE: Self = Self { $($get: T::NEG_ONE),+ };
         }
+        impl<T> $Vec<T> {
+            /// Constant representing the number of elements for this vector type.
+            pub const ELEM_COUNT:usize = $size;
+        }
 
         impl_op!(impl Add for $Vec { add } ($($get),+));
         impl_op!(impl Sub for $Vec { sub } ($($get),+));
@@ -198,9 +202,6 @@ macro_rules! impl_vec {
             pub const fn splat(v: T) -> Self where T: Copy {
                 Self { $($get: v),+ }
             }
-
-            /// Constant representing the number of elements for this vector type.
-            pub const ELEM_COUNT:usize = $size;
 
             /// Converts this into a tuple with the same number of elements by consuming.
             pub fn into_tuple(self) -> $tuple {
