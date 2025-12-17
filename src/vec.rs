@@ -1,5 +1,6 @@
 use crate::num::prelude::*;
 use core::borrow::*;
+use core::iter::*;
 use core::ops::*;
 use core::slice;
 
@@ -176,6 +177,17 @@ macro_rules! impl_vec {
             fn into_iter(self) -> Self::IntoIter {
                 // NOTE: DO NOT return self.iter_mut() here as it causes infinite recursion.
                 self.as_mut_slice().iter_mut()
+            }
+        }
+
+        impl<T> Sum for $Vec<T> where T: Add<T, Output =T> + Zero {
+            fn sum<I: Iterator<Item=$Vec<T>>>(iter: I) -> $Vec<T> {
+                iter.fold(Self::ZERO, Add::add)
+            }
+        }
+        impl<T> Product for $Vec<T> where T: Mul<T, Output =T> + One {
+            fn product<I: Iterator<Item=$Vec<T>>>(iter: I) -> $Vec<T> {
+                iter.fold(Self::ONE, Mul::mul)
             }
         }
 
