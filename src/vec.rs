@@ -1,5 +1,6 @@
 use crate::num::prelude::*;
 use core::borrow::*;
+use core::iter::*;
 use core::ops::*;
 use core::slice;
 
@@ -108,6 +109,10 @@ macro_rules! impl_vec {
         impl<T: NegOne> $Vec<T> {
             pub const NEG_ONE: Self = Self { $($get: T::NEG_ONE),+ };
         }
+        impl<T> $Vec<T> {
+            /// Constant representing the number of elements for this vector type.
+            pub const ELEM_COUNT:usize = $size;
+        }
 
         impl_op!(impl Add for $Vec { add } ($($get),+));
         impl_op!(impl Sub for $Vec { sub } ($($get),+));
@@ -175,6 +180,17 @@ macro_rules! impl_vec {
             }
         }
 
+        impl<T> Sum for $Vec<T> where T: Add<T, Output =T> + Zero {
+            fn sum<I: Iterator<Item=$Vec<T>>>(iter: I) -> $Vec<T> {
+                iter.fold(Self::ZERO, Add::add)
+            }
+        }
+        impl<T> Product for $Vec<T> where T: Mul<T, Output =T> + One {
+            fn product<I: Iterator<Item=$Vec<T>>>(iter: I) -> $Vec<T> {
+                iter.fold(Self::ONE, Mul::mul)
+            }
+        }
+
         impl<T> Deref for $Vec<T> {
             type Target = [T];
             #[inline]
@@ -198,9 +214,6 @@ macro_rules! impl_vec {
             pub const fn splat(v: T) -> Self where T: Copy {
                 Self { $($get: v),+ }
             }
-
-            /// Constant representing the number of elements for this vector type.
-            pub const ELEM_COUNT:usize = $size;
 
             /// Converts this into a tuple with the same number of elements by consuming.
             pub fn into_tuple(self) -> $tuple {
